@@ -943,41 +943,72 @@
       .branch-layout { grid-template-columns: 1fr; }
       .branch-score { grid-column: auto; }
     }
+    .language-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 8px;
+      z-index: 100;
+    }
+    .lang-btn {
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+    .lang-btn.active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: white;
+    }
+    .lang-btn:hover {
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body>
+  <div class="language-toggle">
+    <button class="lang-btn active" data-lang="ja">JP</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+  </div>
   <div class="branch-shell">
     <section class="panel branch-panel">
-      <h2>分岐設定</h2>
-      <p class="section-note">4つの要素を切り替えて、同じ商品でも見え方がどう変わるかを比較できます。</p>
+      <h2 data-text="sectionSettings">分岐設定</h2>
+      <p class="section-note" data-text="sectionSettingsNote">4つの要素を切り替えて、同じ商品でも見え方がどう変わるかを比較できます。</p>
       <div class="branch-layout">
         <div class="branch-left">
           <div class="branch-card">
-            <h3>1. 定期便を明確にする</h3>
+            <h3 data-text="subscriptionLabel">1. 定期便を明確にする</h3>
             <div class="branch-options" data-key="subscription">
-              <button class="branch-option active" data-value="clear">明確にする</button>
-              <button class="branch-option" data-value="hidden">しない</button>
+              <button class="branch-option active" data-value="clear" data-text="subscriptionOn">明確にする</button>
+              <button class="branch-option" data-value="hidden" data-text="subscriptionOff">しない</button>
             </div>
           </div>
           <div class="branch-card">
-            <h3>2. 価格の見せ方</h3>
+            <h3 data-text="priceLabel">2. 価格の見せ方</h3>
             <div class="branch-options" data-key="price">
-              <button class="branch-option active" data-value="original">本来の価格だけ</button>
-              <button class="branch-option" data-value="discount">値下げしているように見せる</button>
+              <button class="branch-option active" data-value="original" data-text="priceOriginal">本来の価格だけ</button>
+              <button class="branch-option" data-value="discount" data-text="priceDiscount">値下げしているように見せる</button>
             </div>
           </div>
           <div class="branch-card">
-            <h3>3. 広告の差別化</h3>
+            <h3 data-text="adLabel">3. 広告の差別化</h3>
             <div class="branch-options" data-key="ad">
-              <button class="branch-option active" data-value="distinct">差別化する</button>
-              <button class="branch-option" data-value="blend">紛れさせる</button>
+              <button class="branch-option active" data-value="distinct" data-text="adDistinct">差別化する</button>
+              <button class="branch-option" data-value="blend" data-text="adBlend">紛れさせる</button>
             </div>
           </div>
           <div class="branch-card">
-            <h3>4. タイマー</h3>
+            <h3 data-text="timerLabel">4. タイマー</h3>
             <div class="branch-options" data-key="timer">
-              <button class="branch-option active" data-value="on">入れる</button>
-              <button class="branch-option" data-value="off">入れない</button>
+              <button class="branch-option active" data-value="on" data-text="timerOn">入れる</button>
+              <button class="branch-option" data-value="off" data-text="timerOff">入れない</button>
             </div>
           </div>
         </div>
@@ -985,9 +1016,9 @@
           <div class="branch-preview" id="branchPreview"></div>
         </div>
         <div class="branch-score">
-          <h3>指標グラフ</h3>
+          <h3 data-text="metrics">指標グラフ</h3>
           <div class="branch-chart" id="branchChart"></div>
-          <div class="branch-score-note" id="branchScoreNote">選択内容から購入者数・評判・信頼・利益の見え方を比較します。</div>
+          <div class="branch-score-note" id="branchScoreNote" data-text="metricsNote">選択内容から購入者数・評判・信頼・利益の見え方を比較します。</div>
           <ul class="branch-summary" id="branchSummary"></ul>
         </div>
       </div>
@@ -997,11 +1028,11 @@
   <div class="main">
     <section class="panel">
       <div class="panel-sub">
-        <h2>イベントログ</h2>
+        <h2 data-text="eventLog">イベントログ</h2>
         <div class="log-list" id="logContainer"></div>
       </div>
       <div class="panel-sub">
-        <h2>あなたが追加した要素</h2>
+        <h2 data-text="appliedElements">あなたが追加した要素</h2>
         <ul id="appliedElements"></ul>
       </div>
     </section>
@@ -1014,6 +1045,309 @@
     <div class="message-card" id="messageCard"></div>
   </div>
 
+  <script>
+    const translations = {
+      ja: {
+        title: 'ダークパターンシミュレーター',
+        sectionSettings: '分岐設定',
+        sectionSettingsNote: '4つの要素を切り替えて、同じ商品でも見え方がどう変わるかを比較できます。',
+        subscriptionClear: '定期便を明確にする',
+        subscriptionHidden: '定期便を明確にする',
+        subscriptionLabel: '1. 定期便を明確にする',
+        subscriptionOn: '明確にする',
+        subscriptionOff: 'しない',
+        priceLabel: '2. 価格の見せ方',
+        priceOriginal: '本来の価格だけ',
+        priceDiscount: '値下げしているように見せる',
+        adLabel: '3. 広告の差別化',
+        adDistinct: '差別化する',
+        adBlend: '紛れさせる',
+        timerLabel: '4. タイマー',
+        timerOn: '入れる',
+        timerOff: '入れない',
+        branchPreview: '分岐プレビュー',
+        subscriptionYes: '定期便あり',
+        subscriptionNo: '定期便なし',
+        subscriptionTag: '定期便',
+        normalPurchaseTag: '通常購入',
+        adTag: '広告',
+        recommendedTag: 'おすすめ',
+        productName: 'プレミアムセット',
+        subscriptionText: '定期便の自動更新あり。いつでも解除可能。',
+        subscriptionTextHidden: '定期便の案内は控えめに。',
+        normalPrice: '3,980円',
+        originalPrice: '通常 4,680円',
+        discountBadge: '今だけ 15%OFF',
+        timerBadge: 'あと5分',
+        purchaseButton: '今すぐ購入',
+        metrics: '指標グラフ',
+        metricsNote: '選択内容から購入者数・評判・信頼・利益の見え方を比較します。',
+        buyersLabel: '購入者数',
+        reputationLabel: '評判',
+        trustLabel: '信頼',
+        profitLabel: '利益',
+        buyersSuffix: '人',
+        reputationSuffix: '/5',
+        trustSuffix: '点',
+        profitSuffix: '万円',
+        metricsStrong: '複数の指標が高く、購入者数と評判の伸びが期待できる構成です。',
+        metricsModerate: '控えめな構成ですが、自然な導線を保ちながら比較しやすい構成です。',
+        summarySubscription: '定期便: ',
+        summaryPrice: '価格: ',
+        summaryAd: '広告: ',
+        summaryTimer: 'タイマー: ',
+        eventLog: 'イベントログ',
+        appliedElements: 'あなたが追加した要素',
+        noChanges: 'まだ変更はありません。',
+        gameStart: 'ゲーム開始',
+        gameStartNote: '現在のUIを改善案と比較しながら、少しずつ設計を変えていきます。',
+        abTestResult: 'A/Bテストの結果',
+        versionA: 'Version A',
+        versionB: 'Version B',
+        winner: 'Winner : ',
+        yourChoice: 'あなたの選択: ',
+        choice1: 'A案',
+        choice2: 'B案',
+        confirmResult: '結果を確認',
+        buttonLarge: 'ボタンを大きくする',
+        buttonLargeDesc: '購入するボタンをより目立たせる。',
+        stockNotification: '「残り3個！」表示',
+        stockNotificationDesc: '在庫の少なさを見せて購入を急かす。',
+        countdownTimer: 'カウントダウンタイマー',
+        countdownTimerDesc: '残り時間を表示して決断を急かす。',
+        reviewStars: 'レビューを表示',
+        reviewStarsDesc: '星評価を追加し信頼性を演出する。',
+        checkboxOn: 'チェックボックスをONにする',
+        checkboxOnDesc: '追加オプションをデフォルトで有効にする。',
+        unsubscribeSmall: '解約ボタンを小さくする',
+        unsubscribeSmallDesc: '退会のアクションを目立たなくする。',
+        popupAd: '広告ポップアップを追加',
+        popupAdDesc: '画面中央にお得情報を表示する。',
+        recommendationLabel: '「おすすめ！」ラベル',
+        recommendationLabelDesc: '商品におすすめタグを追加する。',
+        fakeReview: '偽レビューを追加',
+        fakeReviewDesc: '高評価レビューを目立たせる。',
+        closeButtonSmall: '閉じるボタンを右上の小さい×に変更',
+        closeButtonSmallDesc: 'ポップアップの閉じる操作を目立たなくする。',
+        selectChoice: 'カードをクリックして選択します',
+        snsBurn: 'SNSで炎上',
+        snsBurnText: 'ユーザーが不満を拡散してブランドが批判にさらされた。',
+        reviewDrop: 'レビュー爆下がり',
+        reviewDropText: '評価が急落し、新規獲得が鈍化した。',
+        switchToCompetitor: '競合へ乗り換え',
+        switchToCompetitorText: '一部の利用者が他社へ移行し始めた。',
+        consumerComplaint: '消費者団体から抗議',
+        consumerComplaintText: 'ダークパターンが公となり監視が強まった。',
+        mediaFeature: 'メディア掲載',
+        mediaFeatureText: '批判的な記事が拡散し、印象が悪化した。',
+        regulationWarning: '規制当局から警告',
+        regulationWarningText: '監督官庁から注意喚起を受けた。',
+        appRating: 'App Store評価低下',
+        appRatingText: 'アプリ評価が下がり流入が減少した。',
+        close: '閉じる',
+        profit: '利益',
+        trust: '信頼',
+        review: 'レビュー',
+        users: 'ユーザー数',
+        flameRisk: '炎上リスク',
+        regulationRisk: '規制リスク',
+        turn: 'ターン',
+        profitUnit: '¥',
+        productSelection: '商品を選択',
+        select: '選択',
+        limited: '限定',
+        initialUI: '初期UI',
+        finalUI: '最終UI',
+        appliedElementsLabel: 'あなたが追加した要素',
+        transitions: '推移',
+        retryGame: 'もう一度遊ぶ',
+        gameOverTitle: 'あなたは短期KPIを最適化しました。しかしブランドは崩壊しました。',
+        gameOverNote: '最初のUIと最終的に積み上げたUIを比べて、どのように変化したかを振り返りましょう。',
+        gameRestart: '再開',
+        gameRestartNote: '新しいゲームを開始しました。今回もUI改善の積み重ねを体験しましょう。',
+        adoptionLog: '採用されたUI変更: ',
+        shortTermProfit: '。短期利益は +',
+        trustChange: '、信頼 ',
+        longTermEffect: '。長期影響でユーザー ',
+        profitDecline: '、利益減少 ¥',
+      },
+      en: {
+        title: 'Dark Pattern Simulator',
+        sectionSettings: 'Branch Settings',
+        sectionSettingsNote: 'Switch between 4 elements to compare how the same product can look different.',
+        subscriptionClear: 'Make subscription clear',
+        subscriptionHidden: 'Make subscription clear',
+        subscriptionLabel: '1. Make subscription clear',
+        subscriptionOn: 'Make clear',
+        subscriptionOff: "Don't clarify",
+        priceLabel: '2. Pricing display',
+        priceOriginal: 'Original price only',
+        priceDiscount: 'Make it look discounted',
+        adLabel: '3. Ad differentiation',
+        adDistinct: 'Differentiate',
+        adBlend: 'Blend in',
+        timerLabel: '4. Timer',
+        timerOn: 'Add',
+        timerOff: "Don't add",
+        branchPreview: 'Preview',
+        subscriptionYes: 'With subscription',
+        subscriptionNo: 'Without subscription',
+        subscriptionTag: 'Subscription',
+        normalPurchaseTag: 'Regular purchase',
+        adTag: 'Ad',
+        recommendedTag: 'Recommended',
+        productName: 'Premium Set',
+        subscriptionText: 'Automatic subscription renewal. Cancel anytime.',
+        subscriptionTextHidden: 'Subscription information is discreet.',
+        normalPrice: '$39.80',
+        originalPrice: 'Usually $46.80',
+        discountBadge: '15% OFF Today',
+        timerBadge: '5 minutes left',
+        purchaseButton: 'Buy Now',
+        metrics: 'Metrics',
+        metricsNote: 'Compare buyers, reputation, trust, and profit based on your selections.',
+        buyersLabel: 'Buyers',
+        reputationLabel: 'Reputation',
+        trustLabel: 'Trust',
+        profitLabel: 'Profit',
+        buyersSuffix: 'people',
+        reputationSuffix: '/5',
+        trustSuffix: 'pts',
+        profitSuffix: '万',
+        metricsStrong: 'Multiple indicators are high, with expected growth in buyers and reputation.',
+        metricsModerate: 'A modest setup, but maintains a natural flow while being easy to compare.',
+        summarySubscription: 'Subscription: ',
+        summaryPrice: 'Price: ',
+        summaryAd: 'Ad: ',
+        summaryTimer: 'Timer: ',
+        eventLog: 'Event Log',
+        appliedElements: 'Elements you added',
+        noChanges: 'No changes yet.',
+        gameStart: 'Game start',
+        gameStartNote: 'Compare the current UI with improvement proposals and gradually change the design.',
+        abTestResult: 'A/B Test Results',
+        versionA: 'Version A',
+        versionB: 'Version B',
+        winner: 'Winner : ',
+        yourChoice: 'Your choice: ',
+        choice1: 'Option A',
+        choice2: 'Option B',
+        confirmResult: 'View Results',
+        buttonLarge: 'Make button larger',
+        buttonLargeDesc: 'Make the purchase button more prominent.',
+        stockNotification: '"Only 3 left!" display',
+        stockNotificationDesc: 'Show low stock to urge purchase.',
+        countdownTimer: 'Countdown timer',
+        countdownTimerDesc: 'Display remaining time to rush decision.',
+        reviewStars: 'Display reviews',
+        reviewStarsDesc: 'Add star ratings to create trust perception.',
+        checkboxOn: 'Turn checkbox ON',
+        checkboxOnDesc: 'Enable additional options by default.',
+        unsubscribeSmall: 'Make unsubscribe button small',
+        unsubscribeSmallDesc: 'Make cancellation action less prominent.',
+        popupAd: 'Add ad popup',
+        popupAdDesc: 'Display special offers in the center of screen.',
+        recommendationLabel: 'Add "Recommended!" label',
+        recommendationLabelDesc: 'Add a recommended tag to the product.',
+        fakeReview: 'Add fake reviews',
+        fakeReviewDesc: 'Highlight high-rating reviews.',
+        closeButtonSmall: 'Change close button to small X in top-right',
+        closeButtonSmallDesc: 'Make closing popups less prominent.',
+        selectChoice: 'Click a card to select',
+        snsBurn: 'Social media backlash',
+        snsBurnText: 'Users spread dissatisfaction and the brand faces criticism.',
+        reviewDrop: 'Review crash',
+        reviewDropText: 'Ratings dropped sharply, reducing new acquisitions.',
+        switchToCompetitor: 'Switch to competitor',
+        switchToCompetitorText: 'Some users are starting to switch to other companies.',
+        consumerComplaint: 'Consumer group complaint',
+        consumerComplaintText: 'Dark patterns become public and surveillance increases.',
+        mediaFeature: 'Media coverage',
+        mediaFeatureText: 'Critical articles spread and perception deteriorates.',
+        regulationWarning: 'Warning from regulatory authority',
+        regulationWarningText: 'Received alert from supervisory agency.',
+        appRating: 'App Store rating drop',
+        appRatingText: 'App rating dropped and traffic declined.',
+        close: 'Close',
+        profit: 'Profit',
+        trust: 'Trust',
+        review: 'Review',
+        users: 'Users',
+        flameRisk: 'Flame risk',
+        regulationRisk: 'Regulation risk',
+        turn: 'Turn',
+        profitUnit: '$',
+        productSelection: 'Select product',
+        select: 'Select',
+        limited: 'Limited',
+        initialUI: 'Initial UI',
+        finalUI: 'Final UI',
+        appliedElementsLabel: 'Elements you added',
+        transitions: 'Transitions',
+        retryGame: 'Play again',
+        gameOverTitle: 'You optimized short-term KPIs. But the brand collapsed.',
+        gameOverNote: 'Compare the initial UI with the final UI you built to reflect on the changes.',
+        gameRestart: 'Restart',
+        gameRestartNote: 'Started a new game. Experience the accumulation of UI improvements again.',
+        adoptionLog: 'Applied UI change: ',
+        shortTermProfit: '. Short-term profit +',
+        trustChange: ', trust ',
+        longTermEffect: '. Long-term impact user ',
+        profitDecline: ', profit decline $',
+      }
+    };
+
+    let currentLanguage = localStorage.getItem('darkPatternLang') || 'ja';
+
+    function t(key) {
+      return (translations[currentLanguage] && translations[currentLanguage][key]) || translations.ja[key] || key;
+    }
+
+    function setLanguage(lang) {
+      currentLanguage = lang;
+      localStorage.setItem('darkPatternLang', lang);
+      
+      // Update all language buttons
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+      
+      // Update all elements with data-text attribute
+      document.querySelectorAll('[data-text]').forEach(el => {
+        const key = el.dataset.text;
+        if (translations[lang][key]) {
+          el.textContent = translations[lang][key];
+        }
+      });
+      
+      // Update all elements with data-html attribute
+      document.querySelectorAll('[data-html]').forEach(el => {
+        const key = el.dataset.html;
+        if (translations[lang][key]) {
+          el.innerHTML = translations[lang][key];
+        }
+      });
+      
+      // Trigger game re-render if game exists
+      if (window.game && window.game.render) {
+        window.game.render();
+      }
+    }
+
+    // Initialize language button listeners
+    function initLanguageButtons() {
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setLanguage(btn.dataset.lang);
+        });
+      });
+      
+      // Set initial language state
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === currentLanguage);
+      });
+    }
+  </script>
   <script>
     const branchState = {
       subscription: 'clear',
@@ -1050,42 +1384,42 @@
         + (branchState.timer === 'on' ? 12 : 3);
 
       return [
-        { label: '購入者数', value: buyers, max: 1400, suffix: '人', color: '#2563eb' },
-        { label: '評判', value: Number(reputation.toFixed(1)), max: 5, suffix: '/5', color: '#16a34a' },
-        { label: '信頼', value: trust, max: 120, suffix: '点', color: '#f59e0b' },
-        { label: '利益', value: profit, max: 220, suffix: '万円', color: '#8b5cf6' },
+        { label: t('buyersLabel'), value: buyers, max: 1400, suffix: t('buyersSuffix'), color: '#2563eb' },
+        { label: t('reputationLabel'), value: Number(reputation.toFixed(1)), max: 5, suffix: t('reputationSuffix'), color: '#16a34a' },
+        { label: t('trustLabel'), value: trust, max: 120, suffix: t('trustSuffix'), color: '#f59e0b' },
+        { label: t('profitLabel'), value: profit, max: 220, suffix: t('profitSuffix'), color: '#8b5cf6' },
       ];
     }
 
     function renderBranchPreview() {
       const subscriptionText = branchState.subscription === 'clear'
-        ? '定期便の自動更新あり。いつでも解除可能。'
-        : '定期便の案内は控えめに。';
+        ? t('subscriptionText')
+        : t('subscriptionTextHidden');
       const priceText = branchState.price === 'discount'
-        ? '今だけ 15%OFF'
+        ? t('discountBadge')
         : '';
 
       branchPreview.innerHTML = `
         <div class="branch-preview-head">
-          <div class="branch-preview-pill">分岐プレビュー</div>
-          <div class="branch-preview-pill">${branchState.subscription === 'clear' ? '定期便あり' : '定期便なし'}</div>
+          <div class="branch-preview-pill">${t('branchPreview')}</div>
+          <div class="branch-preview-pill">${branchState.subscription === 'clear' ? t('subscriptionYes') : t('subscriptionNo')}</div>
         </div>
         <div class="branch-preview-card">
           <div class="preview-top">
-            <span class="preview-tag">${branchState.subscription === 'clear' ? '定期便' : '通常購入'}</span>
-            <span class="preview-subtle">${branchState.ad === 'distinct' ? '広告' : 'おすすめ'}</span>
+            <span class="preview-tag">${branchState.subscription === 'clear' ? t('subscriptionTag') : t('normalPurchaseTag')}</span>
+            <span class="preview-subtle">${branchState.ad === 'distinct' ? t('adTag') : t('recommendedTag')}</span>
           </div>
-          <h3 class="product-title">プレミアムセット</h3>
+          <h3 class="product-title">${t('productName')}</h3>
           <p class="preview-subtle">${subscriptionText}</p>
           <div class="price-row">
-            <span class="price-main">${branchState.price === 'discount' ? '3,980円' : '3,980円'}</span>
-            ${branchState.price === 'discount' ? '<span class="price-original">通常 4,680円</span>' : ''}
+            <span class="price-main">${t('normalPrice')}</span>
+            ${branchState.price === 'discount' ? `<span class="price-original">${t('originalPrice')}</span>` : ''}
           </div>
           <div class="promo-badges">
             ${priceText ? `<span class="promo-badge">${priceText}</span>` : ''}
-            ${branchState.timer === 'on' ? '<span class="promo-badge">あと5分</span>' : ''}
+            ${branchState.timer === 'on' ? `<span class="promo-badge">${t('timerBadge')}</span>` : ''}
           </div>
-          <button class="preview-cta">今すぐ購入</button>
+          <button class="preview-cta">${t('purchaseButton')}</button>
         </div>
       `;
 
@@ -1108,13 +1442,13 @@
         </div>
       `;
       branchScoreNote.textContent = strongCount >= 2
-        ? '複数の指標が高く、購入者数と評判の伸びが期待できる構成です。'
-        : '控えめな構成ですが、自然な導線を保ちながら比較しやすい構成です。';
+        ? t('metricsStrong')
+        : t('metricsModerate');
       branchSummary.innerHTML = `
-        <li>定期便: ${branchState.subscription === 'clear' ? '明確にする' : 'しない'}</li>
-        <li>価格: ${branchState.price === 'original' ? '本来の価格だけ' : '値下げしているように見せる'}</li>
-        <li>広告: ${branchState.ad === 'distinct' ? '差別化する' : '紛れさせる'}</li>
-        <li>タイマー: ${branchState.timer === 'on' ? '入れる' : '入れない'}</li>
+        <li>${t('summarySubscription')}${branchState.subscription === 'clear' ? t('subscriptionOn') : t('subscriptionOff')}</li>
+        <li>${t('summaryPrice')}${branchState.price === 'original' ? t('priceOriginal') : t('priceDiscount')}</li>
+        <li>${t('summaryAd')}${branchState.ad === 'distinct' ? t('adDistinct') : t('adBlend')}</li>
+        <li>${t('summaryTimer')}${branchState.timer === 'on' ? t('timerOn') : t('timerOff')}</li>
       `;
     }
 
@@ -1254,8 +1588,8 @@
         return [
           new Option({
             id: 'buttonLarge',
-            title: 'ボタンを大きくする',
-            description: '購入するボタンをより目立たせる。',
+            title: t('buttonLarge'),
+            description: t('buttonLargeDesc'),
             profit: 5, trust: -1, flame: 0, regulation: 0, review: 0,
             cvr: '5.2%',
             highlightKey: 'buttonLarge',
@@ -1263,26 +1597,26 @@
           }),
           new Option({
             id: 'stockNotification',
-            title: '「残り3個！」表示',
-            description: '在庫の少なさを見せて購入を急かす。',
+            title: t('stockNotification'),
+            description: t('stockNotificationDesc'),
             profit: 10, trust: -4, flame: 3, regulation: 0, review: 0,
             cvr: '6.1%',
             highlightKey: 'stock',
-            applyState: (state) => { state.stock = '残り3個！'; },
+            applyState: (state) => { state.stock = t('stockNotification'); },
           }),
           new Option({
             id: 'countdownTimer',
-            title: 'カウントダウンタイマー',
-            description: '残り時間を表示して決断を急かす。',
+            title: t('countdownTimer'),
+            description: t('countdownTimerDesc'),
             profit: 12, trust: -6, flame: 5, regulation: 0, review: 0,
             cvr: '7.1%',
             highlightKey: 'countdown',
-            applyState: (state) => { state.countdown = 'あと5分'; },
+            applyState: (state) => { state.countdown = t('timerBadge'); },
           }),
           new Option({
             id: 'reviewStars',
-            title: 'レビューを表示',
-            description: '星評価を追加し信頼性を演出する。',
+            title: t('reviewStars'),
+            description: t('reviewStarsDesc'),
             profit: 4, trust: -1, flame: 0, regulation: 0, review: 0,
             cvr: '5.8%',
             highlightKey: 'reviewStars',
@@ -1290,17 +1624,17 @@
           }),
           new Option({
             id: 'checkboxOn',
-            title: 'チェックボックスをONにする',
-            description: '追加オプションをデフォルトで有効にする。',
+            title: t('checkboxOn'),
+            description: t('checkboxOnDesc'),
             profit: 8, trust: -5, flame: 2, regulation: 0, review: 0,
             cvr: '6.5%',
             highlightKey: 'checkbox',
-            applyState: (state) => { state.checkbox = '特典プランをONにする'; },
+            applyState: (state) => { state.checkbox = t('checkboxOn'); },
           }),
           new Option({
             id: 'unsubscribeSmall',
-            title: '解約ボタンを小さくする',
-            description: '退会のアクションを目立たなくする。',
+            title: t('unsubscribeSmall'),
+            description: t('unsubscribeSmallDesc'),
             profit: 15, trust: -10, flame: 6, regulation: 4, review: 0,
             cvr: '7.4%',
             highlightKey: 'unsubscribeSmall',
@@ -1308,17 +1642,17 @@
           }),
           new Option({
             id: 'popupAd',
-            title: '広告ポップアップを追加',
-            description: '画面中央にお得情報を表示する。',
+            title: t('popupAd'),
+            description: t('popupAdDesc'),
             profit: 7, trust: -4, flame: 0, regulation: 0, review: -0.2,
             cvr: '6.8%',
             highlightKey: 'popup',
-            applyState: (state) => { state.popup = '今なら50%OFF！'; },
+            applyState: (state) => { state.popup = t('discountBadge'); },
           }),
           new Option({
             id: 'recommendationLabel',
-            title: '「おすすめ！」ラベル',
-            description: '商品におすすめタグを追加する。',
+            title: t('recommendationLabel'),
+            description: t('recommendationLabelDesc'),
             profit: 6, trust: -2, flame: 0, regulation: 0, review: 0,
             cvr: '5.4%',
             highlightKey: 'recommendation',
@@ -1326,8 +1660,8 @@
           }),
           new Option({
             id: 'fakeReviewNote',
-            title: '偽レビューを追加',
-            description: '高評価レビューを目立たせる。',
+            title: t('fakeReview'),
+            description: t('fakeReviewDesc'),
             profit: 9, trust: -8, flame: 4, regulation: 0, review: -0.1,
             cvr: '6.9%',
             highlightKey: 'fakeReview',
@@ -1335,8 +1669,8 @@
           }),
           new Option({
             id: 'closeButtonSmall',
-            title: '閉じるボタンを右上の小さい×に変更',
-            description: 'ポップアップの閉じる操作を目立たなくする。',
+            title: t('closeButtonSmall'),
+            description: t('closeButtonSmallDesc'),
             profit: 5, trust: -3, flame: 1, regulation: 0, review: 0,
             cvr: '5.7%',
             highlightKey: 'closeButtonSmall',
@@ -1347,13 +1681,13 @@
 
       createEvents() {
         return [
-          new Event({ label: 'SNSで炎上', text: 'ユーザーが不満を拡散してブランドが批判にさらされた。', chance: 0.18, effect: (player) => { player.trust -= 8; player.review -= 0.2; player.users -= 25; return '信頼とユーザーが急落しました。'; } }),
-          new Event({ label: 'レビュー爆下がり', text: '評価が急落し、新規獲得が鈍化した。', chance: 0.15, effect: (player) => { player.review -= 0.4; player.users -= 40; return 'レビュー評価が大きく下がりました。'; } }),
-          new Event({ label: '競合へ乗り換え', text: '一部の利用者が他社へ移行し始めた。', chance: 0.14, effect: (player) => { player.users -= 50; player.profit -= 6; return 'ユーザー離脱が進み利益が減少しました。'; } }),
-          new Event({ label: '消費者団体から抗議', text: 'ダークパターンが公となり監視が強まった。', chance: 0.12, effect: (player) => { player.trust -= 6; player.regulation += 6; return '規制リスクが増大しました。'; } }),
-          new Event({ label: 'メディア掲載', text: '批判的な記事が拡散し、印象が悪化した。', chance: 0.13, effect: (player) => { player.trust -= 5; player.users -= 20; player.review -= 0.2; return 'メディア露出で信頼がさらに傷つきました。'; } }),
-          new Event({ label: '規制当局から警告', text: '監督官庁から注意喚起を受けた。', chance: 0.1, effect: (player) => { player.regulation += 8; return '規制リスクが急上昇しました。'; } }),
-          new Event({ label: 'App Store評価低下', text: 'アプリ評価が下がり流入が減少した。', chance: 0.12, effect: (player) => { player.review -= 0.3; player.users -= 15; return '評価低下でユーザー獲得力が弱まりました。'; } }),
+          new Event({ label: t('snsBurn'), text: t('snsBurnText'), chance: 0.18, effect: (player) => { player.trust -= 8; player.review -= 0.2; player.users -= 25; return t('snsBurn'); } }),
+          new Event({ label: t('reviewDrop'), text: t('reviewDropText'), chance: 0.15, effect: (player) => { player.review -= 0.4; player.users -= 40; return t('reviewDrop'); } }),
+          new Event({ label: t('switchToCompetitor'), text: t('switchToCompetitorText'), chance: 0.14, effect: (player) => { player.users -= 50; player.profit -= 6; return t('switchToCompetitor'); } }),
+          new Event({ label: t('consumerComplaint'), text: t('consumerComplaintText'), chance: 0.12, effect: (player) => { player.trust -= 6; player.regulation += 6; return t('consumerComplaint'); } }),
+          new Event({ label: t('mediaFeature'), text: t('mediaFeatureText'), chance: 0.13, effect: (player) => { player.trust -= 5; player.users -= 20; player.review -= 0.2; return t('mediaFeature'); } }),
+          new Event({ label: t('regulationWarning'), text: t('regulationWarningText'), chance: 0.1, effect: (player) => { player.regulation += 8; return t('regulationWarning'); } }),
+          new Event({ label: t('appRating'), text: t('appRatingText'), chance: 0.12, effect: (player) => { player.review -= 0.3; player.users -= 15; return t('appRating'); } }),
         ];
       }
 
@@ -1369,7 +1703,7 @@
         this.messageCard = document.getElementById('messageCard');
         this.currentPair = this.choosePair();
         this.render();
-        this.addLog('ゲーム開始', '現在のUIを改善案と比較しながら、少しずつ設計を変えていきます。');
+        this.addLog(t('gameStart'), t('gameStartNote'));
       }
 
       choosePair() {
@@ -1392,13 +1726,13 @@
         if (!this.topStats) return;
         const p = this.player;
         const items = [
-          { label: '利益', value: `¥${p.profit}` },
-          { label: '信頼', value: `${p.trust}` },
-          { label: 'レビュー', value: `${p.review.toFixed(1)}` },
-          { label: 'ユーザー数', value: `${p.users}` },
-          { label: '炎上リスク', value: `${p.flame}` },
-          { label: '規制リスク', value: `${p.regulation}` },
-          { label: 'ターン', value: `${p.turn}` },
+          { label: t('profit'), value: `${t('profitUnit')}${p.profit}` },
+          { label: t('trust'), value: `${p.trust}` },
+          { label: t('review'), value: `${p.review.toFixed(1)}` },
+          { label: t('users'), value: `${p.users}` },
+          { label: t('flameRisk'), value: `${p.flame}` },
+          { label: t('regulationRisk'), value: `${p.regulation}` },
+          { label: t('turn'), value: `${p.turn}` },
         ];
         this.topStats.innerHTML = items.map(item => `
           <div class="stat-pill">
@@ -1416,11 +1750,11 @@
           const mode = index === 0 ? 'clear' : 'soft';
           return `
             <div class="option-card" onclick="game.handleOptionSelected(${index})" tabindex="0">
-              <div class="option-title">${index === 0 ? 'A案' : 'B案'}: ${option.title}</div>
+              <div class="option-title">${index === 0 ? t('choice1') : t('choice2')}: ${option.title}</div>
               <p class="option-desc">${option.description}</p>
               <div class="sim-panel">${this.renderUIState(previewState, [option.highlightKey], mode)}</div>
               <div class="option-actions">
-                <div class="hint">カードをクリックして選択します</div>
+                <div class="hint">${t('selectChoice')}</div>
                 <div style="display:flex; align-items:center; gap:10px; color:#94a3b8;">A: ${this.currentPair[0].cvr} / B: ${this.currentPair[1].cvr}</div>
               </div>
             </div>
@@ -1432,27 +1766,27 @@
         if (!this.rightStats) return;
         const p = this.player;
         this.rightStats.innerHTML = `
-          <div class="small-stat"><label>利益</label><div class="value">¥${p.profit}</div></div>
-          <div class="small-stat"><label>信頼度</label><div class="value">${p.trust}</div><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, p.trust)}%"></div></div></div>
-          <div class="small-stat"><label>レビュー</label><div class="value">${p.review.toFixed(1)}</div></div>
-          <div class="small-stat"><label>ユーザー数</label><div class="value">${p.users}</div></div>
-          <div class="small-stat"><label>炎上回数</label><div class="value">${p.flameEvents}</div></div>
-          <div class="small-stat"><label>規制リスク</label><div class="value">${p.regulation}</div></div>
+          <div class="small-stat"><label>${t('profit')}</label><div class="value">${t('profitUnit')}${p.profit}</div></div>
+          <div class="small-stat"><label>${t('trust')}</label><div class="value">${p.trust}</div><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, p.trust)}%"></div></div></div>
+          <div class="small-stat"><label>${t('review')}</label><div class="value">${p.review.toFixed(1)}</div></div>
+          <div class="small-stat"><label>${t('users')}</label><div class="value">${p.users}</div></div>
+          <div class="small-stat"><label>${t('flameRisk')}</label><div class="value">${p.flameEvents}</div></div>
+          <div class="small-stat"><label>${t('regulationRisk')}</label><div class="value">${p.regulation}</div></div>
         `;
       }
 
       renderAppliedList() {
         this.appliedElements.innerHTML = this.appliedOptions.length > 0
           ? this.appliedOptions.map(item => `<li>${item}</li>`).join('')
-          : '<li>まだ変更はありません。</li>';
+          : `<li>${t('noChanges')}</li>`;
       }
 
       renderUIState(state, highlightKeys, mode = 'clear') {
         const isClear = mode === 'clear';
         const products = [
-          { title: '限定セット', price: '¥3,980', badge: '人気' },
-          { title: 'フルスペック版', price: '¥5,980', badge: '新作' },
-          { title: 'お試しプラン', price: '¥1,980', badge: 'お得' },
+          { title: '限定セット', price: `${t('profitUnit')}39.80`, badge: t('flameRisk') },
+          { title: 'フルスペック版', price: `${t('profitUnit')}59.80`, badge: t('users') },
+          { title: 'お試しプラン', price: `${t('profitUnit')}19.80`, badge: t('profit') },
         ];
         const productMarkup = (product, index) => `
           <div class="selection-item">
@@ -1461,14 +1795,14 @@
               <div class="item-name">${product.title}</div>
               <div class="item-price">${product.price}</div>
             </div>
-            <button class="select-pill">選択</button>
+            <button class="select-pill">${t('select')}</button>
           </div>
         `;
         const adMarkup = `
           <div class="ad-slot ${isClear ? 'mode-clear' : 'mode-soft'}">
-            <div class="ad-badge">広告</div>
-            <div class="ad-copy">今だけ50%OFF</div>
-            <div class="ad-note">限定</div>
+            <div class="ad-badge">${t('adTag')}</div>
+            <div class="ad-copy">${t('discountBadge')}</div>
+            <div class="ad-note">${t('limited')}</div>
           </div>
         `;
         const listMarkup = `${productMarkup(products[0], 0)}${adMarkup}${productMarkup(products[1], 1)}${productMarkup(products[2], 2)}`;
@@ -1476,8 +1810,8 @@
         return `
           <div class="selection-page ${isClear ? 'mode-clear' : 'mode-soft'}">
             <div class="selection-top">
-              <div>商品を選択</div>
-              <div>おすすめ</div>
+              <div>${t('productSelection')}</div>
+              <div>${t('recommendedTag')}</div>
             </div>
             <div class="selection-list">
               ${listMarkup}
@@ -1496,16 +1830,16 @@
       showABTest(chosen, chosenIndex) {
         this.abOverlay.classList.remove('hidden');
         this.abCard.innerHTML = `
-          <div class="ab-title">A/Bテストの結果</div>
+          <div class="ab-title">${t('abTestResult')}</div>
           <div class="ab-grid">
-            <div class="ab-card"><h3>A案</h3><p>${this.currentPair[0].title}</p><p>CVR ${this.currentPair[0].cvr}</p></div>
-            <div class="ab-card"><h3>B案</h3><p>${this.currentPair[1].title}</p><p>CVR ${this.currentPair[1].cvr}</p></div>
+            <div class="ab-card"><h3>A${t('choice1')}</h3><p>${this.currentPair[0].title}</p><p>CVR ${this.currentPair[0].cvr}</p></div>
+            <div class="ab-card"><h3>B${t('choice2')}</h3><p>${this.currentPair[1].title}</p><p>CVR ${this.currentPair[1].cvr}</p></div>
           </div>
           <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; gap:14px;">
-            <div class="winner">Winner : ${parseFloat(this.currentPair[0].cvr) > parseFloat(this.currentPair[1].cvr) ? 'Version A' : 'Version B'}</div>
-            <div style="color:#475569;">あなたの選択: ${chosenIndex === 0 ? 'A案' : 'B案'}</div>
+            <div class="winner">${t('winner')}${parseFloat(this.currentPair[0].cvr) > parseFloat(this.currentPair[1].cvr) ? t('versionA') : t('versionB')}</div>
+            <div style="color:#475569;">${t('yourChoice')}${chosenIndex === 0 ? t('choice1') : t('choice2')}</div>
           </div>
-          <div style="margin-top:20px; display:flex; gap:12px;"><button class="button secondary" id="skipButton">結果を確認</button></div>
+          <div style="margin-top:20px; display:flex; gap:12px;"><button class="button secondary" id="skipButton">${t('confirmResult')}</button></div>
         `;
         const skipButton = document.getElementById('skipButton');
         skipButton.addEventListener('click', () => {
@@ -1530,7 +1864,7 @@
         const longTerm = this.player.applyLongTerm();
         this.player.pushHistory();
         this.render();
-        this.addLog(option.title, `採用されたUI変更: ${option.description}。短期利益は +${option.profit}、信頼 ${option.trust > 0 ? '+' : ''}${option.trust}。長期影響でユーザー ${longTerm.userDelta >= 0 ? '+' : ''}${longTerm.userDelta}、利益減少 ¥${Math.round(longTerm.longTermProfit)}。`);
+        this.addLog(option.title, `${t('adoptionLog')}${option.description}${t('shortTermProfit')}${option.profit}${t('trustChange')}${option.trust > 0 ? '+' : ''}${option.trust}${t('longTermEffect')}${longTerm.userDelta >= 0 ? '+' : ''}${longTerm.userDelta}${t('profitDecline')}${Math.round(longTerm.longTermProfit)}.`);
         this.handleRandomEvent();
         this.player.turn += 1;
         this.currentPair = this.choosePair();
@@ -1565,7 +1899,7 @@
         this.messageCard.innerHTML = `
           <h3>${title}</h3>
           <p>${text}</p>
-          <button class="button primary" id="closeMessage">閉じる</button>
+          <button class="button primary" id="closeMessage">${t('close')}</button>
         `;
         this.messageOverlay.classList.remove('hidden');
         document.getElementById('closeMessage').addEventListener('click', () => {
@@ -1580,24 +1914,24 @@
       showGameOver() {
         const initialUIHtml = this.renderUIState(this.initialUI, []);
         const finalUIHtml = this.renderUIState(this.currentUI, []);
-        const appliedList = this.appliedOptions.length > 0 ? this.appliedOptions.map(item => `<li>${item}</li>`).join('') : '<li>変更はありません。</li>';
-        const historyTable = this.player.history.map(entry => `<li>ターン ${entry.turn}: 利益 ¥${entry.profit}, 信頼 ${entry.trust}, ユーザー ${entry.users}, レビュー ${entry.review.toFixed(1)}, 炎上 ${entry.flame}</li>`).join('');
+        const appliedList = this.appliedOptions.length > 0 ? this.appliedOptions.map(item => `<li>${item}</li>`).join('') : `<li>${t('noChanges')}</li>`;
+        const historyTable = this.player.history.map(entry => `<li>${t('turn')} ${entry.turn}: ${t('profit')} ${t('profitUnit')}${entry.profit}, ${t('trust')} ${entry.trust}, ${t('users')} ${entry.users}, ${t('review')} ${entry.review.toFixed(1)}, ${t('flameRisk')} ${entry.flame}</li>`).join('');
         this.messageCard.innerHTML = `
-          <h3>あなたは短期KPIを最適化しました。しかしブランドは崩壊しました。</h3>
-          <p>最初のUIと最終的に積み上げたUIを比べて、どのように変化したかを振り返りましょう。</p>
+          <h3>${t('gameOverTitle')}</h3>
+          <p>${t('gameOverNote')}</p>
           <div class="summary-grid">
-            <div class="summary-card"><h4>初期UI</h4>${initialUIHtml}</div>
-            <div class="summary-card"><h4>最終UI</h4>${finalUIHtml}</div>
+            <div class="summary-card"><h4>${t('initialUI')}</h4>${initialUIHtml}</div>
+            <div class="summary-card"><h4>${t('finalUI')}</h4>${finalUIHtml}</div>
           </div>
           <div class="summary-card">
-            <h4>あなたが追加した要素</h4>
+            <h4>${t('appliedElementsLabel')}</h4>
             <ul class="summary-list">${appliedList}</ul>
           </div>
           <div class="summary-card">
-            <h4>推移</h4>
+            <h4>${t('transitions')}</h4>
             <ul class="summary-list">${historyTable}</ul>
           </div>
-          <button class="button primary" id="restartButton">もう一度遊ぶ</button>
+          <button class="button primary" id="restartButton">${t('retryGame')}</button>
         `;
         this.messageOverlay.classList.remove('hidden');
         document.getElementById('restartButton').addEventListener('click', () => {
@@ -1615,12 +1949,13 @@
         this.currentPair = this.choosePair();
         this.logContainer.innerHTML = '';
         this.render();
-        this.addLog('再開', '新しいゲームを開始しました。今回もUI改善の積み重ねを体験しましょう。');
+        this.addLog(t('gameRestart'), t('gameRestartNote'));
         this.isBusy = false;
       }
     }
 
     const game = new Game();
+    initLanguageButtons();
   </script>
 </body>
 </html>
