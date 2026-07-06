@@ -1347,7 +1347,10 @@
         }
       });
       
-      // Trigger game re-render if game exists
+      // Update game translations and re-render if game exists
+      if (window.game && typeof window.game.updateTranslations === 'function') {
+        window.game.updateTranslations();
+      }
       if (window.game && window.game.render) {
         window.game.render();
       }
@@ -1547,9 +1550,9 @@
       }
 
       reset() {
-        this.title = '商品名';
-        this.description = '商品説明';
-        this.buttonText = '購入する';
+        this.title = t('productName');
+        this.description = t('subscriptionText');
+        this.buttonText = t('purchaseButton');
         this.buttonLarge = false;
         this.stock = null;
         this.countdown = null;
@@ -1607,6 +1610,8 @@
         return [
           new Option({
             id: 'buttonLarge',
+            titleKey: 'buttonLarge',
+            descriptionKey: 'buttonLargeDesc',
             title: t('buttonLarge'),
             description: t('buttonLargeDesc'),
             profit: 5, trust: -1, flame: 0, regulation: 0, review: 0,
@@ -1616,6 +1621,8 @@
           }),
           new Option({
             id: 'stockNotification',
+            titleKey: 'stockNotification',
+            descriptionKey: 'stockNotificationDesc',
             title: t('stockNotification'),
             description: t('stockNotificationDesc'),
             profit: 10, trust: -4, flame: 3, regulation: 0, review: 0,
@@ -1625,6 +1632,8 @@
           }),
           new Option({
             id: 'countdownTimer',
+            titleKey: 'countdownTimer',
+            descriptionKey: 'countdownTimerDesc',
             title: t('countdownTimer'),
             description: t('countdownTimerDesc'),
             profit: 12, trust: -6, flame: 5, regulation: 0, review: 0,
@@ -1634,6 +1643,8 @@
           }),
           new Option({
             id: 'reviewStars',
+            titleKey: 'reviewStars',
+            descriptionKey: 'reviewStarsDesc',
             title: t('reviewStars'),
             description: t('reviewStarsDesc'),
             profit: 4, trust: -1, flame: 0, regulation: 0, review: 0,
@@ -1643,6 +1654,8 @@
           }),
           new Option({
             id: 'checkboxOn',
+            titleKey: 'checkboxOn',
+            descriptionKey: 'checkboxOnDesc',
             title: t('checkboxOn'),
             description: t('checkboxOnDesc'),
             profit: 8, trust: -5, flame: 2, regulation: 0, review: 0,
@@ -1652,6 +1665,8 @@
           }),
           new Option({
             id: 'unsubscribeSmall',
+            titleKey: 'unsubscribeSmall',
+            descriptionKey: 'unsubscribeSmallDesc',
             title: t('unsubscribeSmall'),
             description: t('unsubscribeSmallDesc'),
             profit: 15, trust: -10, flame: 6, regulation: 4, review: 0,
@@ -1661,6 +1676,8 @@
           }),
           new Option({
             id: 'popupAd',
+            titleKey: 'popupAd',
+            descriptionKey: 'popupAdDesc',
             title: t('popupAd'),
             description: t('popupAdDesc'),
             profit: 7, trust: -4, flame: 0, regulation: 0, review: -0.2,
@@ -1670,6 +1687,8 @@
           }),
           new Option({
             id: 'recommendationLabel',
+            titleKey: 'recommendationLabel',
+            descriptionKey: 'recommendationLabelDesc',
             title: t('recommendationLabel'),
             description: t('recommendationLabelDesc'),
             profit: 6, trust: -2, flame: 0, regulation: 0, review: 0,
@@ -1679,6 +1698,8 @@
           }),
           new Option({
             id: 'fakeReviewNote',
+            titleKey: 'fakeReview',
+            descriptionKey: 'fakeReviewDesc',
             title: t('fakeReview'),
             description: t('fakeReviewDesc'),
             profit: 9, trust: -8, flame: 4, regulation: 0, review: -0.1,
@@ -1688,6 +1709,8 @@
           }),
           new Option({
             id: 'closeButtonSmall',
+            titleKey: 'closeButtonSmall',
+            descriptionKey: 'closeButtonSmallDesc',
             title: t('closeButtonSmall'),
             description: t('closeButtonSmallDesc'),
             profit: 5, trust: -3, flame: 1, regulation: 0, review: 0,
@@ -1696,6 +1719,24 @@
             applyState: (state) => { state.closeButtonSmall = true; },
           }),
         ];
+      }
+
+      updateTranslations() {
+        if (!this.options) return;
+        this.options.forEach(opt => {
+          if (opt.titleKey) opt.title = t(opt.titleKey);
+          if (opt.descriptionKey) opt.description = t(opt.descriptionKey);
+        });
+        if (this.currentUI) {
+          this.currentUI.title = t('productName');
+          this.currentUI.description = t('subscriptionText');
+          this.currentUI.buttonText = t('purchaseButton');
+        }
+        if (this.initialUI) {
+          this.initialUI.title = this.currentUI.title;
+          this.initialUI.description = this.currentUI.description;
+          this.initialUI.buttonText = this.currentUI.buttonText;
+        }
       }
 
       createEvents() {
@@ -1796,7 +1837,10 @@
 
       renderAppliedList() {
         this.appliedElements.innerHTML = this.appliedOptions.length > 0
-          ? this.appliedOptions.map(item => `<li>${item}</li>`).join('')
+          ? this.appliedOptions.map(id => {
+              const opt = this.options.find(o => o.id === id);
+              return `<li>${opt ? opt.title : id}</li>`;
+            }).join('')
           : `<li>${t('noChanges')}</li>`;
       }
 
@@ -1875,7 +1919,7 @@
 
       applySelectedOption(option) {
         this.currentUI.applyOption(option);
-        this.appliedOptions.push(option.title);
+        this.appliedOptions.push(option.id);
         this.availableOptions = this.availableOptions.filter(o => o.id !== option.id);
         const previousProfit = this.player.profit;
         const previousTrust = this.player.trust;
@@ -1933,7 +1977,12 @@
       showGameOver() {
         const initialUIHtml = this.renderUIState(this.initialUI, []);
         const finalUIHtml = this.renderUIState(this.currentUI, []);
-        const appliedList = this.appliedOptions.length > 0 ? this.appliedOptions.map(item => `<li>${item}</li>`).join('') : `<li>${t('noChanges')}</li>`;
+        const appliedList = this.appliedOptions.length > 0
+          ? this.appliedOptions.map(id => {
+              const opt = this.options.find(o => o.id === id);
+              return `<li>${opt ? opt.title : id}</li>`;
+            }).join('')
+          : `<li>${t('noChanges')}</li>`;
         const historyTable = this.player.history.map(entry => `<li>${t('turn')} ${entry.turn}: ${t('profit')} ${t('profitUnit')}${entry.profit}, ${t('trust')} ${entry.trust}, ${t('users')} ${entry.users}, ${t('review')} ${entry.review.toFixed(1)}, ${t('flameRisk')} ${entry.flame}</li>`).join('');
         this.messageCard.innerHTML = `
           <h3>${t('gameOverTitle')}</h3>
@@ -1975,6 +2024,8 @@
 
     const game = new Game();
     initLanguageButtons();
+    // Apply saved/initial language to update all texts
+    setLanguage(currentLanguage);
   </script>
 </body>
 </html>
