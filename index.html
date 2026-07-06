@@ -224,6 +224,24 @@
       font-weight: 700;
       font-size: 0.82rem;
     }
+    .branch-preview-card .promo-badge.timer-badge {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.14);
+      font-variant-numeric: tabular-nums;
+    }
+    .branch-preview-card .promo-timer-note {
+      color: #dc2626;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      margin-right: 8px;
+      text-transform: none;
+    }
     .branch-preview-card .promo-badge.soft {
       background: #f1f5f9;
       color: #475569;
@@ -753,11 +771,16 @@
     }
     .selection-page .ad-slot .ad-badge {
       display: inline-flex;
+      align-items: center;
+      color: #1d4ed8;
       padding: 4px 8px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.7);
+      background: #dbeafe;
+      border: 1px solid #93c5fd;
       font-size: 0.75rem;
       font-weight: 800;
+      letter-spacing: 0.02em;
+      box-shadow: 0 1px 2px rgba(29, 78, 216, 0.12);
     }
     .selection-page .ad-slot .ad-copy {
       font-size: 0.82rem;
@@ -1382,6 +1405,28 @@
     const branchSummary = document.getElementById('branchSummary');
     const branchChart = document.getElementById('branchChart');
     const branchScoreNote = document.getElementById('branchScoreNote');
+    const COUNTDOWN_START_SECONDS = 5 * 60;
+    let branchCountdownSeconds = COUNTDOWN_START_SECONDS;
+    let branchCountdownTimerId = null;
+    let branchCountdownFinished = false;
+
+    function formatCountdown(seconds) {
+      const safeSeconds = Math.max(0, seconds);
+      const minutes = Math.floor(safeSeconds / 60);
+      const remainingSeconds = safeSeconds % 60;
+      return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    }
+
+    function stopBranchCountdown(reset = false, finished = false) {
+      if (branchCountdownTimerId !== null) {
+        clearInterval(branchCountdownTimerId);
+        branchCountdownTimerId = null;
+      }
+      if (reset) {
+        branchCountdownSeconds = COUNTDOWN_START_SECONDS;
+      }
+      branchCountdownFinished = finished;
+    }
 
     function computeBranchMetrics() {
       const buyers = 980
@@ -1420,6 +1465,30 @@
       const priceText = branchState.price === 'discount'
         ? t('discountBadge')
         : '';
+      const timerText = branchState.timer === 'on'
+        ? formatCountdown(branchCountdownSeconds)
+        : '';
+
+      if (branchState.timer === 'on') {
+        if (branchCountdownTimerId === null && !branchCountdownFinished) {
+          branchCountdownTimerId = setInterval(() => {
+            if (branchState.timer !== 'on') {
+              stopBranchCountdown(true);
+              renderBranchPreview();
+              return;
+            }
+            if (branchCountdownSeconds > 0) {
+              branchCountdownSeconds -= 1;
+            }
+            if (branchCountdownSeconds === 0) {
+              stopBranchCountdown(false, true);
+            }
+            renderBranchPreview();
+          }, 1000);
+        }
+      } else {
+        stopBranchCountdown(true, false);
+      }
 
       branchPreview.innerHTML = `
         <div class="branch-preview-head">
@@ -1439,7 +1508,8 @@
           </div>
           <div class="promo-badges">
             ${priceText ? `<span class="promo-badge">${priceText}</span>` : ''}
-            ${branchState.timer === 'on' ? `<span class="promo-badge">${t('timerBadge')}</span>` : ''}
+            ${branchState.timer === 'on' ? `<span class="promo-timer-note">この価格で買えるのはあと</span>` : ''}
+            ${branchState.timer === 'on' ? `<span class="promo-badge timer-badge">${timerText}</span>` : ''}
           </div>
           <button class="preview-cta">${t('purchaseButton')}</button>
         </div>
@@ -1479,6 +1549,13 @@
         const button = event.target.closest('.branch-option');
         if (!button) return;
         const key = group.dataset.key;
+        if (key === 'timer') {
+          if (button.dataset.value === 'on') {
+            stopBranchCountdown(true, false);
+          } else {
+            stopBranchCountdown(true, false);
+          }
+        }
         branchState[key] = button.dataset.value;
         group.querySelectorAll('.branch-option').forEach((option) => option.classList.toggle('active', option === button));
         renderBranchPreview();
