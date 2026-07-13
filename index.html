@@ -68,7 +68,7 @@
     }
     .branch-layout {
       display: grid;
-      grid-template-columns: minmax(320px, 440px) minmax(220px, 320px);
+      grid-template-columns: minmax(280px, 320px) minmax(0, 1fr) minmax(260px, 320px);
       gap: 18px;
       align-items: start;
     }
@@ -76,9 +76,14 @@
       display: grid;
       gap: 12px;
     }
+    .branch-center {
+      display: flex;
+      justify-content: center;
+    }
     .branch-right {
       display: grid;
-      justify-items: center;
+      gap: 12px;
+      align-content: start;
     }
     .branch-card {
       background: #0f172a;
@@ -116,7 +121,9 @@
       color: white;
     }
     .branch-preview {
-      width: min(100%, 440px);
+      width: 100%;
+      min-height: 60vh;
+      max-width: 760px;
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 24px;
@@ -125,6 +132,7 @@
       gap: 14px;
       color: #0f172a;
       box-shadow: inset 0 0 0 1px rgba(148,163,184,0.12);
+      overflow: auto;
     }
     .branch-preview.drag-over {
       border-color: #2563eb;
@@ -177,6 +185,100 @@
       color: #64748b;
       font-size: 0.9rem;
     }
+    .subscription-callout {
+      position: relative;
+      width: 100%;
+      display: grid;
+      gap: 0;
+      text-align: left;
+      border: 1px solid transparent;
+      border-radius: 18px;
+      padding: 6px 10px;
+      background: #f8fafc;
+      color: #0f172a;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+    .subscription-callout:hover,
+    .subscription-callout:focus-visible {
+      transform: translateY(-1px);
+      border-color: #dbe3ea;
+    }
+    .subscription-callout.selected {
+      border-color: #dbe3ea;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    }
+    .subscription-callout .subscription-change-mark {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: #ffffff;
+      color: #2563eb;
+      font-size: 0.78rem;
+      font-weight: 900;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.14);
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+    .subscription-callout.selected .subscription-change-mark {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .subscription-callout .subscription-callout-label {
+      font-size: 0.76rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #2563eb;
+    }
+    .subscription-callout .subscription-callout-text {
+      line-height: 1.25;
+      color: #334155;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+    .subscription-callout.clear {
+      background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+      padding: 6px 10px;
+    }
+    .subscription-callout.clear.selected {
+      border-color: #93c5fd;
+    }
+    .subscription-callout.clear .subscription-callout-text {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .subscription-callout.clear .subscription-change-mark {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    .subscription-callout.hidden {
+      background: #f8fafc;
+      padding: 6px 10px;
+    }
+    .subscription-callout.hidden.selected {
+      border-color: #e2e8f0;
+    }
+    .subscription-callout.hidden .subscription-callout-text {
+      font-size: 0.92rem;
+      color: #64748b;
+      font-weight: 500;
+      line-height: 1.25;
+    }
+    .subscription-callout.hidden .subscription-change-mark {
+      background: #e2e8f0;
+      color: #64748b;
+    }
+    .branch-preview-card .subscription-callout {
+      margin-top: 0;
+    }
     .branch-preview-card .product-title {
       margin: 0;
       font-size: 1.2rem;
@@ -186,6 +288,66 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 10px;
+    }
+    .branch-preview-card .price-row .promo-badge {
+      padding: 6px 10px;
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 0.8rem;
+    }
+    .branch-preview-card .price-row .timer-inline {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: linear-gradient(135deg, #ef4444 0%, #f97316 55%, #fbbf24 100%);
+      color: #ffffff;
+      font-size: 0.95rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      font-variant-numeric: tabular-nums;
+    }
+    .branch-preview-card .price-row .timer-inline.selected {
+      outline: 2px dashed #ffffff;
+      outline-offset: 2px;
+      box-shadow:
+        0 18px 32px rgba(220, 38, 38, 0.34),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    }
+    .branch-preview-card .price-row .timer-inline .timer-remove,
+    .branch-preview-card .price-row .discount-remove,
+    .timer-placement[data-role="timer-widget"] .timer-remove,
+    .timer-remove {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      border: none;
+      background: #ffffff;
+      color: #dc2626;
+      display: grid;
+      place-items: center;
+      font-size: 0.8rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
+    }
+    .branch-preview-card .price-row .discount-inline {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .branch-preview-card .price-row .discount-inline.selected {
+      outline: 2px dashed #f59e0b;
+      outline-offset: 2px;
     }
     .branch-preview-card .price-main {
       font-size: 1.7rem;
@@ -220,6 +382,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+      align-items: flex-start;
     }
     .branch-preview-card .promo-badge {
       display: inline-flex;
@@ -263,18 +426,25 @@
       cursor: pointer;
     }
     .branch-score {
-      grid-column: 1 / -1;
-      background: transparent;
-      border: none;
-      border-radius: 0;
-      padding: 0;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 24px;
+      padding: 18px;
       display: grid;
       gap: 12px;
       color: #0f172a;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
     }
     .branch-score h3 {
       margin: 0;
       font-size: 1rem;
+    }
+    .branch-metrics-content {
+      display: grid;
+      gap: 12px;
+    }
+    .branch-metrics-content.hidden {
+      display: grid;
     }
     .finish-button {
       justify-self: end;
@@ -294,20 +464,42 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      width: fit-content;
-      padding: 8px 10px;
+      width: 100%;
+      justify-content: flex-start;
+      padding: 10px 12px;
       border-radius: 999px;
-      border: 1px solid #f59e0b;
-      background: #fff7ed;
-      color: #c2410c;
+      border: 1px solid transparent;
       font-weight: 800;
-      font-size: 0.82rem;
+      font-size: 0.9rem;
       cursor: grab;
       user-select: none;
       position: relative;
+      transition: transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
     .timer-drag-item + .timer-drag-item {
       margin-top: 8px;
+    }
+    .timer-drag-item[data-kind="timer"] {
+      border-color: rgba(255, 255, 255, 0.18);
+      background: linear-gradient(135deg, #ef4444 0%, #f97316 55%, #fbbf24 100%);
+      color: #ffffff;
+      box-shadow:
+        0 16px 28px rgba(239, 68, 68, 0.18),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+    .timer-drag-item[data-kind="discount"] {
+      border-color: #f59e0b;
+      background: #fef3c7;
+      color: #92400e;
+      box-shadow: 0 10px 18px rgba(245, 158, 11, 0.12);
+    }
+    .timer-drag-item.placed {
+      opacity: 0.48;
+      filter: grayscale(0.95) saturate(0.35);
+      box-shadow: none;
+    }
+    .timer-drag-item.placed:hover {
+      transform: none;
     }
     .timer-drop-hint {
       color: #64748b;
@@ -327,26 +519,56 @@
       font-size: 0.82rem;
       position: relative;
     }
+    .timer-placement[data-role="timer-widget"] {
+      min-width: min(100%, 280px);
+      padding: 12px 14px 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: linear-gradient(135deg, #ef4444 0%, #f97316 55%, #fbbf24 100%);
+      color: #ffffff;
+      box-shadow:
+        0 16px 28px rgba(239, 68, 68, 0.28),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+      animation: timer-pulse 1.8s ease-in-out infinite;
+    }
+    .timer-placement[data-role="timer-widget"]::before {
+      content: 'COUNTDOWN';
+      position: absolute;
+      top: -10px;
+      left: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(17, 24, 39, 0.94);
+      color: #fde68a;
+      font-size: 0.65rem;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+    }
+    .timer-placement[data-role="timer-widget"] > span:first-child {
+      font-size: 1.1rem;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18));
+    }
+    .timer-placement[data-role="timer-widget"] > span:nth-child(2) {
+      font-size: 1.1rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+    }
     .timer-placement.selected {
       outline: 2px dashed #dc2626;
       outline-offset: 4px;
       background: #fff1f2;
     }
-    .timer-remove {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      width: 20px;
-      height: 20px;
-      border-radius: 999px;
-      border: none;
-      background: #dc2626;
-      color: white;
-      display: grid;
-      place-items: center;
-      font-size: 0.8rem;
-      cursor: pointer;
-      line-height: 1;
+    .timer-placement[data-role="timer-widget"].selected {
+      outline-color: #ffffff;
+      background: linear-gradient(135deg, #dc2626 0%, #fb7185 100%);
+      box-shadow:
+        0 18px 32px rgba(220, 38, 38, 0.34),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    }
+    .branch-preview-card .subscription-callout + .price-row {
+      margin-top: 2px;
     }
     .branch-metrics-content.hidden {
       display: none;
@@ -366,6 +588,65 @@
     .branch-chart {
       display: grid;
       gap: 12px;
+    }
+    .prediction-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .prediction-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+    .prediction-item.high {
+      border-color: #fecaca;
+      background: #fff1f2;
+    }
+    .prediction-item.mid {
+      border-color: #fde68a;
+      background: #fffbeb;
+    }
+    .prediction-item.low {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+    }
+    .prediction-label {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .prediction-detail {
+      margin-top: 2px;
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.4;
+    }
+    .prediction-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 56px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 900;
+      font-size: 0.82rem;
+    }
+    .prediction-pill.high {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .prediction-pill.mid {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .prediction-pill.low {
+      background: #dcfce7;
+      color: #166534;
     }
     .branch-chart-grid {
       display: grid;
@@ -403,26 +684,6 @@
       font-weight: 800;
       color: #0f172a;
       text-align: center;
-    }
-    .branch-score-note {
-      color: #475569;
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-    .branch-summary {
-      display: grid;
-      gap: 8px;
-      padding: 0;
-      margin: 0;
-      list-style: none;
-    }
-    .branch-summary li {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 10px 12px;
-      color: #334155;
-      font-size: 0.95rem;
     }
     .panel {
       background: #111827;
@@ -1062,6 +1323,10 @@
     }
     .flash-green { animation: flash-green 0.7s ease; }
     .flash-red { animation: flash-red 0.7s ease; }
+    @keyframes timer-pulse {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-1px) scale(1.01); }
+    }
     @keyframes flash-green {
       0% { color: var(--success); }
       50% { color: #4ade80; }
@@ -1076,7 +1341,9 @@
       .main { grid-template-columns: 1fr; }
       .top-bar { grid-template-columns: repeat(3, minmax(120px, 1fr)); }
       .branch-layout { grid-template-columns: 1fr; }
-      .branch-score { grid-column: auto; }
+      .branch-center { justify-content: stretch; }
+      .branch-preview { min-height: auto; }
+      .branch-preview { max-width: none; }
     }
     .language-toggle {
       position: fixed;
@@ -1119,28 +1386,28 @@
       <div class="branch-layout">
         <div class="branch-left">
           <div class="branch-card">
-            <h3 data-text="timerLabel">4. タイマー / 15% オフ</h3>
+            <h3 data-text="timerLabel">4. カウントダウンタイマー / 15% オフ</h3>
             <p class="timer-drop-hint">ドラッグしてプレビューに置いてください。</p>
-            <div id="timerDraggable" class="timer-drag-item timer-placement" draggable="true">
+            <div id="timerDraggable" class="timer-drag-item timer-placement" data-kind="timer" draggable="true">
               <span>⏱</span>
-              <span>タイマー</span>
+              <span>この価格で買えるのは残り 05:00</span>
             </div>
-            <div id="discountDraggable" class="timer-drag-item timer-placement" draggable="true">
+            <div id="discountDraggable" class="timer-drag-item timer-placement" data-kind="discount" draggable="true">
               <span>🏷</span>
-              <span>15% オフ</span>
+              <span>今だけ 15%OFF</span>
             </div>
           </div>
         </div>
-        <div class="branch-right">
+        <div class="branch-center">
           <div class="branch-preview" id="branchPreview"></div>
         </div>
-        <div class="branch-score">
-          <button type="button" class="finish-button" id="finishMetricsButton">完成</button>
-          <div class="branch-metrics-content hidden" id="branchMetricsContent">
-            <h3 data-text="metrics">指標グラフ</h3>
-            <div class="branch-chart" id="branchChart"></div>
-            <div class="branch-score-note" id="branchScoreNote" data-text="metricsNote">選択内容から購入者数・評判・信頼・利益の見え方を比較します。</div>
-            <ul class="branch-summary" id="branchSummary"></ul>
+        <div class="branch-right">
+          <div class="branch-score">
+            <button type="button" class="finish-button" id="finishMetricsButton" data-text="finishMetrics">完成</button>
+            <div class="branch-metrics-content" id="branchMetricsContent">
+              <h3 data-text="predictionTitle">スコア予測</h3>
+              <div class="branch-chart" id="branchChart"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1193,7 +1460,7 @@
         adLabel: '3. 広告の差別化',
         adDistinct: '差別化する',
         adBlend: '紛れさせる',
-        timerLabel: '4. タイマー',
+        timerLabel: '4. カウントダウンタイマー',
         timerOn: '入れる',
         timerOff: '入れない',
         branchPreview: '分岐プレビュー',
@@ -1204,12 +1471,12 @@
         adTag: '広告',
         recommendedTag: 'おすすめ',
         productName: 'プレミアムセット',
-        subscriptionText: '定期便の自動更新あり。いつでも解除可能。',
-        subscriptionTextHidden: '定期便の案内は控えめに。',
+        subscriptionText: '⚠︎ 月1回の定期便です / 毎月15日に引き落とし',
+        subscriptionTextHidden: '定期便',
         normalPrice: '3,980円',
         originalPrice: '通常 4,680円',
         discountBadge: '今だけ 15%OFF',
-        timerBadge: 'あと5分',
+        timerBadge: '残り5分',
         purchaseButton: '今すぐ購入',
         metrics: '指標グラフ',
         metricsNote: '選択内容から購入者数・評判・信頼・利益の見え方を比較します。',
@@ -1223,6 +1490,12 @@
         profitSuffix: '万円',
         metricsStrong: '複数の指標が高く、購入者数と評判の伸びが期待できる構成です。',
         metricsModerate: '控えめな構成ですが、自然な導線を保ちながら比較しやすい構成です。',
+        predictionTitle: 'スコア予測',
+        finishMetrics: '完成',
+        buyersForecast: '購入者数の期待',
+        flameForecast: '炎上リスク',
+        trustForecast: '信頼',
+        profitForecast: '利益',
         summarySubscription: '定期便: ',
         summaryPrice: '価格: ',
         summaryAd: '広告: ',
@@ -1328,8 +1601,8 @@
         adTag: 'Ad',
         recommendedTag: 'Recommended',
         productName: 'Premium Set',
-        subscriptionText: 'Automatic subscription renewal. Cancel anytime.',
-        subscriptionTextHidden: 'Subscription information is discreet.',
+        subscriptionText: '⚠︎ Monthly subscription / Charged on the 15th of every month',
+        subscriptionTextHidden: 'Subscription',
         normalPrice: '$39.80',
         originalPrice: 'Usually $46.80',
         discountBadge: '15% OFF Today',
@@ -1347,6 +1620,12 @@
         profitSuffix: '万',
         metricsStrong: 'Multiple indicators are high, with expected growth in buyers and reputation.',
         metricsModerate: 'A modest setup, but maintains a natural flow while being easy to compare.',
+        predictionTitle: 'Score forecast',
+        finishMetrics: 'Complete',
+        buyersForecast: 'Buyer expectation',
+        flameForecast: 'Flame risk',
+        trustForecast: 'Trust',
+        profitForecast: 'Profit',
         summarySubscription: 'Subscription: ',
         summaryPrice: 'Price: ',
         summaryAd: 'Ad: ',
@@ -1507,6 +1786,19 @@
     let branchCountdownFinished = false;
     let selectedPlacementWidget = null;
 
+    function syncBranchWidgetStates(timerLabelText = 'この価格で買えるのは残り 05:00') {
+      if (timerDraggable) {
+        timerDraggable.classList.toggle('placed', branchState.timer === 'on');
+        const timerTextNode = timerDraggable.querySelector('span:nth-child(2)');
+        if (timerTextNode) {
+          timerTextNode.textContent = timerLabelText;
+        }
+      }
+      if (discountDraggable) {
+        discountDraggable.classList.toggle('placed', branchState.price === 'discount');
+      }
+    }
+
     function formatCountdown(seconds) {
       const safeSeconds = Math.max(0, seconds);
       const minutes = Math.floor(safeSeconds / 60);
@@ -1523,6 +1815,27 @@
         branchCountdownSeconds = COUNTDOWN_START_SECONDS;
       }
       branchCountdownFinished = finished;
+    }
+
+    function getStageLevel(ratio, reverse = false) {
+      if (!reverse) {
+        if (ratio >= 0.78) return 'high';
+        if (ratio >= 0.55) return 'mid';
+        return 'low';
+      }
+      if (ratio <= 0.22) return 'high';
+      if (ratio <= 0.45) return 'mid';
+      return 'low';
+    }
+
+    function getStageWord(kind, level) {
+      if (currentLanguage === 'en') {
+        return { high: 'High', mid: 'Medium', low: 'Low' }[level];
+      }
+      if (kind === 'trust') {
+        return { high: '高', mid: '中', low: '低' }[level];
+      }
+      return { high: '大', mid: '中', low: '小' }[level];
     }
 
     function computeBranchMetrics() {
@@ -1555,17 +1868,37 @@
       ];
     }
 
+    function buildPredictionItems(metrics) {
+      const [buyersMetric, reputationMetric, trustMetric, profitMetric] = metrics;
+      const buyersLevel = getStageLevel(buyersMetric.value / buyersMetric.max);
+      const flameLevel = getStageLevel((120 - trustMetric.value) / 120, true);
+      const trustLevel = getStageLevel(trustMetric.value / trustMetric.max);
+      const profitLevel = getStageLevel(profitMetric.value / profitMetric.max);
+
+      return [
+        { label: t('buyersForecast'), stage: getStageWord('generic', buyersLevel), level: buyersLevel },
+        { label: t('flameForecast'), stage: getStageWord('generic', flameLevel), level: flameLevel },
+        { label: t('trustForecast'), stage: getStageWord('trust', trustLevel), level: trustLevel },
+        { label: t('profitForecast'), stage: getStageWord('generic', profitLevel), level: profitLevel },
+      ];
+    }
+
     function renderBranchMetricPanels() {
       const metrics = computeBranchMetrics();
-      const strongCount = metrics.filter((metric) => metric.value >= metric.max * 0.8).length;
-      const note = strongCount >= 2 ? t('metricsStrong') : t('metricsModerate');
-      const summaryMarkup = `
-        <li>${t('summarySubscription')}${branchState.subscription === 'clear' ? t('subscriptionOn') : t('subscriptionOff')}</li>
-        <li>${t('summaryPrice')}${branchState.price === 'original' ? t('priceOriginal') : t('priceDiscount')}</li>
-        <li>${t('summaryAd')}${branchState.ad === 'distinct' ? t('adDistinct') : t('adBlend')}</li>
-        <li>${t('summaryTimer')}${branchState.timer === 'on' ? t('timerOn') : t('timerOff')}</li>
+      const predictionItems = buildPredictionItems(metrics);
+      const predictionMarkup = `
+        <div class="prediction-grid">
+          ${predictionItems.map((item) => `
+            <div class="prediction-item ${item.level}">
+              <div>
+                <div class="prediction-label">${item.label}</div>
+              </div>
+              <span class="prediction-pill ${item.level}">${item.stage}</span>
+            </div>
+          `).join('')}
+        </div>
       `;
-      const chartMarkup = `
+      const detailChartMarkup = `
         <div class="branch-chart-grid">
           ${metrics.map((metric) => {
             const height = Math.max(12, Math.round((metric.value / metric.max) * 100));
@@ -1581,22 +1914,20 @@
           }).join('')}
         </div>
       `;
-      branchChart.innerHTML = chartMarkup;
-      branchScoreNote.textContent = note;
-      branchSummary.innerHTML = summaryMarkup;
+      branchChart.innerHTML = predictionMarkup;
       if (metricsPopupContent) {
         metricsPopupContent.innerHTML = `
-          <div class="branch-chart">${chartMarkup}</div>
-          <div class="branch-score-note">${note}</div>
-          <ul class="branch-summary">${summaryMarkup}</ul>
+          <div class="branch-chart">${detailChartMarkup}</div>
+          <div class="branch-score-note">${t('metricsNote')}</div>
         `;
       }
     }
 
     function renderBranchPreview() {
-      const subscriptionText = branchState.subscription === 'clear'
-        ? t('subscriptionText')
-        : t('subscriptionTextHidden');
+      const subscriptionVariant = branchState.subscription === 'clear' ? 'clear' : 'hidden';
+      const subscriptionTextMarkup = branchState.subscription === 'clear'
+        ? '⚠︎ 月1回の定期便です / 毎月15日に引き落とし'
+        : '定期便';
       const timerText = branchState.timer === 'on'
         ? formatCountdown(branchCountdownSeconds)
         : '';
@@ -1622,45 +1953,46 @@
         stopBranchCountdown(true, false);
       }
 
-      const timerMarkup = branchState.timer === 'on'
-        ? `<div class="timer-placement ${selectedPlacementWidget === 'timer' ? 'selected' : ''}" data-role="timer-widget">
+      const subscriptionMarkup = `<button type="button" class="subscription-callout ${subscriptionVariant} ${selectedPlacementWidget === 'subscription' ? 'selected' : ''}" data-role="subscription-widget" aria-label="定期便の表示を切り替える">
+        <span class="subscription-change-mark">⇄</span>
+        <span class="subscription-callout-text">${subscriptionTextMarkup}</span>
+      </button>`;
+      const timerInlineLabel = `この価格で買えるのは残り ${timerText || '05:00'}`;
+      const timerInlineMarkup = branchState.timer === 'on'
+        ? `<span class="timer-inline ${selectedPlacementWidget === 'timer' ? 'selected' : ''}" data-role="timer-widget">
             <span>⏱</span>
-            <span>${timerText || 'あと5分'}</span>
+            <span>${timerInlineLabel}</span>
             ${selectedPlacementWidget === 'timer' ? '<button class="timer-remove" type="button" aria-label="削除">×</button>' : ''}
-          </div>`
+          </span>`
         : '';
-      const discountMarkup = branchState.price === 'discount'
-        ? `<div class="timer-placement ${selectedPlacementWidget === 'discount' ? 'selected' : ''}" data-role="discount-widget">
+      const discountInlineMarkup = branchState.price === 'discount'
+        ? `<div class="promo-badge discount-inline ${selectedPlacementWidget === 'discount' ? 'selected' : ''}" data-role="discount-widget">
             <span>🏷</span>
             <span>${t('discountBadge')}</span>
-            ${selectedPlacementWidget === 'discount' ? '<button class="timer-remove" type="button" aria-label="削除">×</button>' : ''}
+            ${selectedPlacementWidget === 'discount' ? '<button type="button" class="discount-remove" aria-label="削除">×</button>' : ''}
           </div>`
         : '';
 
       branchPreview.innerHTML = `
-        <div class="branch-preview-head">
-          <div class="branch-preview-pill">${t('branchPreview')}</div>
-          <div class="branch-preview-pill">${branchState.subscription === 'clear' ? t('subscriptionYes') : t('subscriptionNo')}</div>
-        </div>
         <div class="branch-preview-card">
           <div class="preview-top">
             <span class="preview-tag">${branchState.subscription === 'clear' ? t('subscriptionTag') : t('normalPurchaseTag')}</span>
             <span class="preview-subtle">${branchState.ad === 'distinct' ? t('adTag') : t('recommendedTag')}</span>
           </div>
           <h3 class="product-title">${t('productName')}</h3>
-          <p class="preview-subtle">${subscriptionText}</p>
           <div class="price-row">
             <span class="price-main">${t('normalPrice')}</span>
             ${branchState.price === 'discount' ? `<span class="price-original">${t('originalPrice')}</span>` : ''}
+            ${discountInlineMarkup}
+            ${timerInlineMarkup}
           </div>
-          <div class="promo-badges">
-            ${timerMarkup}
-            ${discountMarkup}
-          </div>
+          ${subscriptionMarkup}
+          <div class="promo-badges"></div>
           <button class="preview-cta">${t('purchaseButton')}</button>
         </div>
       `;
 
+      syncBranchWidgetStates(timerInlineLabel);
       renderBranchMetricPanels();
     }
 
@@ -1703,16 +2035,41 @@
     });
 
     branchPreview.addEventListener('click', (event) => {
-      const widget = event.target.closest('[data-role="timer-widget"], [data-role="discount-widget"]');
-      if (!widget) return;
-      const widgetType = widget.dataset.role === 'discount-widget' ? 'discount' : 'timer';
-      if (event.target.closest('.timer-remove')) {
+      const widget = event.target.closest('[data-role="timer-widget"], [data-role="discount-widget"], [data-role="subscription-widget"]');
+      if (!widget) {
+        const clickedInsidePreview = event.target.closest('.branch-preview-card, .branch-preview');
+        const clickedInteractiveElement = event.target.closest('button, a, input, textarea, select');
+        if (clickedInsidePreview && !clickedInteractiveElement) {
+          selectedPlacementWidget = null;
+          renderBranchPreview();
+        }
+        return;
+      }
+      const widgetType = widget.dataset.role === 'discount-widget'
+        ? 'discount'
+        : widget.dataset.role === 'subscription-widget'
+          ? 'subscription'
+          : 'timer';
+      if (event.target.closest('.timer-remove, .discount-remove')) {
         if (widgetType === 'timer') {
           branchState.timer = 'off';
-        } else {
+        } else if (widgetType === 'discount') {
           branchState.price = 'original';
+        } else {
+          branchState.timer = 'off';
         }
         selectedPlacementWidget = null;
+        renderBranchPreview();
+        return;
+      }
+      if (widgetType === 'subscription') {
+        if (event.target.closest('.subscription-change-mark')) {
+          branchState.subscription = branchState.subscription === 'clear' ? 'hidden' : 'clear';
+          selectedPlacementWidget = 'subscription';
+          renderBranchPreview();
+          return;
+        }
+        selectedPlacementWidget = 'subscription';
         renderBranchPreview();
         return;
       }
@@ -1747,6 +2104,7 @@
     });
 
     renderBranchPreview();
+    syncBranchWidgetStates();
   </script>
   <script>
     class Player {
