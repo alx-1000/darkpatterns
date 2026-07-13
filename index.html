@@ -68,7 +68,7 @@
     }
     .branch-layout {
       display: grid;
-      grid-template-columns: minmax(320px, 440px) minmax(300px, 1fr);
+      grid-template-columns: minmax(320px, 440px) minmax(220px, 320px);
       gap: 18px;
       align-items: start;
     }
@@ -78,6 +78,7 @@
     }
     .branch-right {
       display: grid;
+      justify-items: center;
     }
     .branch-card {
       background: #0f172a;
@@ -115,6 +116,7 @@
       color: white;
     }
     .branch-preview {
+      width: min(100%, 440px);
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 24px;
@@ -123,6 +125,10 @@
       gap: 14px;
       color: #0f172a;
       box-shadow: inset 0 0 0 1px rgba(148,163,184,0.12);
+    }
+    .branch-preview.drag-over {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
     }
     .branch-preview-head {
       display: flex;
@@ -258,10 +264,10 @@
     }
     .branch-score {
       grid-column: 1 / -1;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 22px;
-      padding: 18px;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
       display: grid;
       gap: 12px;
       color: #0f172a;
@@ -269,6 +275,93 @@
     .branch-score h3 {
       margin: 0;
       font-size: 1rem;
+    }
+    .finish-button {
+      justify-self: end;
+      border: none;
+      border-radius: 999px;
+      background: #fbbf24;
+      color: #111827;
+      padding: 10px 18px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(251, 191, 36, 0.25);
+    }
+    .finish-button:hover {
+      transform: translateY(-1px);
+    }
+    .timer-drag-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid #f59e0b;
+      background: #fff7ed;
+      color: #c2410c;
+      font-weight: 800;
+      font-size: 0.82rem;
+      cursor: grab;
+      user-select: none;
+      position: relative;
+    }
+    .timer-drag-item + .timer-drag-item {
+      margin-top: 8px;
+    }
+    .timer-drop-hint {
+      color: #64748b;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .timer-placement {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid #f59e0b;
+      background: #fff7ed;
+      color: #c2410c;
+      font-weight: 800;
+      font-size: 0.82rem;
+      position: relative;
+    }
+    .timer-placement.selected {
+      outline: 2px dashed #dc2626;
+      outline-offset: 4px;
+      background: #fff1f2;
+    }
+    .timer-remove {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      border: none;
+      background: #dc2626;
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 0.8rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .branch-metrics-content.hidden {
+      display: none;
+    }
+    .metric-modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .metric-modal-head h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #111827;
     }
     .branch-chart {
       display: grid;
@@ -1026,31 +1119,15 @@
       <div class="branch-layout">
         <div class="branch-left">
           <div class="branch-card">
-            <h3 data-text="subscriptionLabel">1. 定期便を明確にする</h3>
-            <div class="branch-options" data-key="subscription">
-              <button class="branch-option active" data-value="clear" data-text="subscriptionOn">明確にする</button>
-              <button class="branch-option" data-value="hidden" data-text="subscriptionOff">しない</button>
+            <h3 data-text="timerLabel">4. タイマー / 15% オフ</h3>
+            <p class="timer-drop-hint">ドラッグしてプレビューに置いてください。</p>
+            <div id="timerDraggable" class="timer-drag-item timer-placement" draggable="true">
+              <span>⏱</span>
+              <span>タイマー</span>
             </div>
-          </div>
-          <div class="branch-card">
-            <h3 data-text="priceLabel">2. 価格の見せ方</h3>
-            <div class="branch-options" data-key="price">
-              <button class="branch-option active" data-value="original" data-text="priceOriginal">本来の価格だけ</button>
-              <button class="branch-option" data-value="discount" data-text="priceDiscount">値下げしているように見せる</button>
-            </div>
-          </div>
-          <div class="branch-card">
-            <h3 data-text="adLabel">3. 広告の差別化</h3>
-            <div class="branch-options" data-key="ad">
-              <button class="branch-option active" data-value="distinct" data-text="adDistinct">差別化する</button>
-              <button class="branch-option" data-value="blend" data-text="adBlend">紛れさせる</button>
-            </div>
-          </div>
-          <div class="branch-card">
-            <h3 data-text="timerLabel">4. タイマー</h3>
-            <div class="branch-options" data-key="timer">
-              <button class="branch-option active" data-value="on" data-text="timerOn">入れる</button>
-              <button class="branch-option" data-value="off" data-text="timerOff">入れない</button>
+            <div id="discountDraggable" class="timer-drag-item timer-placement" draggable="true">
+              <span>🏷</span>
+              <span>15% オフ</span>
             </div>
           </div>
         </div>
@@ -1058,10 +1135,13 @@
           <div class="branch-preview" id="branchPreview"></div>
         </div>
         <div class="branch-score">
-          <h3 data-text="metrics">指標グラフ</h3>
-          <div class="branch-chart" id="branchChart"></div>
-          <div class="branch-score-note" id="branchScoreNote" data-text="metricsNote">選択内容から購入者数・評判・信頼・利益の見え方を比較します。</div>
-          <ul class="branch-summary" id="branchSummary"></ul>
+          <button type="button" class="finish-button" id="finishMetricsButton">完成</button>
+          <div class="branch-metrics-content hidden" id="branchMetricsContent">
+            <h3 data-text="metrics">指標グラフ</h3>
+            <div class="branch-chart" id="branchChart"></div>
+            <div class="branch-score-note" id="branchScoreNote" data-text="metricsNote">選択内容から購入者数・評判・信頼・利益の見え方を比較します。</div>
+            <ul class="branch-summary" id="branchSummary"></ul>
+          </div>
         </div>
       </div>
     </section>
@@ -1085,6 +1165,15 @@
   </div>
   <div class="overlay hidden" id="messageOverlay">
     <div class="message-card" id="messageCard"></div>
+  </div>
+  <div class="overlay hidden" id="metricsOverlay">
+    <div class="modal-card">
+      <div class="metric-modal-head">
+        <h3>指標結果</h3>
+        <button type="button" class="button secondary" id="closeMetricsButton">閉じる</button>
+      </div>
+      <div id="metricsPopupContent"></div>
+    </div>
   </div>
 
   <script>
@@ -1398,17 +1487,25 @@
       subscription: 'clear',
       price: 'original',
       ad: 'distinct',
-      timer: 'on',
+      timer: 'off',
     };
 
     const branchPreview = document.getElementById('branchPreview');
+    const branchMetricsContent = document.getElementById('branchMetricsContent');
     const branchSummary = document.getElementById('branchSummary');
     const branchChart = document.getElementById('branchChart');
     const branchScoreNote = document.getElementById('branchScoreNote');
+    const finishMetricsButton = document.getElementById('finishMetricsButton');
+    const metricsOverlay = document.getElementById('metricsOverlay');
+    const metricsPopupContent = document.getElementById('metricsPopupContent');
+    const closeMetricsButton = document.getElementById('closeMetricsButton');
+    const timerDraggable = document.getElementById('timerDraggable');
+    const discountDraggable = document.getElementById('discountDraggable');
     const COUNTDOWN_START_SECONDS = 5 * 60;
     let branchCountdownSeconds = COUNTDOWN_START_SECONDS;
     let branchCountdownTimerId = null;
     let branchCountdownFinished = false;
+    let selectedPlacementWidget = null;
 
     function formatCountdown(seconds) {
       const safeSeconds = Math.max(0, seconds);
@@ -1458,13 +1555,48 @@
       ];
     }
 
+    function renderBranchMetricPanels() {
+      const metrics = computeBranchMetrics();
+      const strongCount = metrics.filter((metric) => metric.value >= metric.max * 0.8).length;
+      const note = strongCount >= 2 ? t('metricsStrong') : t('metricsModerate');
+      const summaryMarkup = `
+        <li>${t('summarySubscription')}${branchState.subscription === 'clear' ? t('subscriptionOn') : t('subscriptionOff')}</li>
+        <li>${t('summaryPrice')}${branchState.price === 'original' ? t('priceOriginal') : t('priceDiscount')}</li>
+        <li>${t('summaryAd')}${branchState.ad === 'distinct' ? t('adDistinct') : t('adBlend')}</li>
+        <li>${t('summaryTimer')}${branchState.timer === 'on' ? t('timerOn') : t('timerOff')}</li>
+      `;
+      const chartMarkup = `
+        <div class="branch-chart-grid">
+          ${metrics.map((metric) => {
+            const height = Math.max(12, Math.round((metric.value / metric.max) * 100));
+            return `
+              <div class="branch-chart-item">
+                <div class="branch-chart-bar">
+                  <div class="branch-chart-fill" style="height:${height}%"></div>
+                </div>
+                <div class="branch-chart-value">${metric.value}${metric.suffix}</div>
+                <div class="branch-chart-label">${metric.label}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+      branchChart.innerHTML = chartMarkup;
+      branchScoreNote.textContent = note;
+      branchSummary.innerHTML = summaryMarkup;
+      if (metricsPopupContent) {
+        metricsPopupContent.innerHTML = `
+          <div class="branch-chart">${chartMarkup}</div>
+          <div class="branch-score-note">${note}</div>
+          <ul class="branch-summary">${summaryMarkup}</ul>
+        `;
+      }
+    }
+
     function renderBranchPreview() {
       const subscriptionText = branchState.subscription === 'clear'
         ? t('subscriptionText')
         : t('subscriptionTextHidden');
-      const priceText = branchState.price === 'discount'
-        ? t('discountBadge')
-        : '';
       const timerText = branchState.timer === 'on'
         ? formatCountdown(branchCountdownSeconds)
         : '';
@@ -1490,6 +1622,21 @@
         stopBranchCountdown(true, false);
       }
 
+      const timerMarkup = branchState.timer === 'on'
+        ? `<div class="timer-placement ${selectedPlacementWidget === 'timer' ? 'selected' : ''}" data-role="timer-widget">
+            <span>⏱</span>
+            <span>${timerText || 'あと5分'}</span>
+            ${selectedPlacementWidget === 'timer' ? '<button class="timer-remove" type="button" aria-label="削除">×</button>' : ''}
+          </div>`
+        : '';
+      const discountMarkup = branchState.price === 'discount'
+        ? `<div class="timer-placement ${selectedPlacementWidget === 'discount' ? 'selected' : ''}" data-role="discount-widget">
+            <span>🏷</span>
+            <span>${t('discountBadge')}</span>
+            ${selectedPlacementWidget === 'discount' ? '<button class="timer-remove" type="button" aria-label="削除">×</button>' : ''}
+          </div>`
+        : '';
+
       branchPreview.innerHTML = `
         <div class="branch-preview-head">
           <div class="branch-preview-pill">${t('branchPreview')}</div>
@@ -1507,55 +1654,92 @@
             ${branchState.price === 'discount' ? `<span class="price-original">${t('originalPrice')}</span>` : ''}
           </div>
           <div class="promo-badges">
-            ${priceText ? `<span class="promo-badge">${priceText}</span>` : ''}
-            ${branchState.timer === 'on' ? `<span class="promo-timer-note">この価格で買えるのはあと</span>` : ''}
-            ${branchState.timer === 'on' ? `<span class="promo-badge timer-badge">${timerText}</span>` : ''}
+            ${timerMarkup}
+            ${discountMarkup}
           </div>
           <button class="preview-cta">${t('purchaseButton')}</button>
         </div>
       `;
 
-      const metrics = computeBranchMetrics();
-      const strongCount = metrics.filter((metric) => metric.value >= metric.max * 0.8).length;
-      branchChart.innerHTML = `
-        <div class="branch-chart-grid">
-          ${metrics.map((metric) => {
-            const height = Math.max(12, Math.round((metric.value / metric.max) * 100));
-            return `
-              <div class="branch-chart-item">
-                <div class="branch-chart-bar">
-                  <div class="branch-chart-fill" style="height:${height}%"></div>
-                </div>
-                <div class="branch-chart-value">${metric.value}${metric.suffix}</div>
-                <div class="branch-chart-label">${metric.label}</div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-      branchScoreNote.textContent = strongCount >= 2
-        ? t('metricsStrong')
-        : t('metricsModerate');
-      branchSummary.innerHTML = `
-        <li>${t('summarySubscription')}${branchState.subscription === 'clear' ? t('subscriptionOn') : t('subscriptionOff')}</li>
-        <li>${t('summaryPrice')}${branchState.price === 'original' ? t('priceOriginal') : t('priceDiscount')}</li>
-        <li>${t('summaryAd')}${branchState.ad === 'distinct' ? t('adDistinct') : t('adBlend')}</li>
-        <li>${t('summaryTimer')}${branchState.timer === 'on' ? t('timerOn') : t('timerOff')}</li>
-      `;
+      renderBranchMetricPanels();
     }
+
+    if (timerDraggable) {
+      timerDraggable.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', 'timer');
+        event.dataTransfer.effectAllowed = 'copy';
+      });
+    }
+    if (discountDraggable) {
+      discountDraggable.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', 'discount');
+        event.dataTransfer.effectAllowed = 'copy';
+      });
+    }
+
+    branchPreview.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      branchPreview.classList.add('drag-over');
+    });
+
+    branchPreview.addEventListener('dragleave', () => {
+      branchPreview.classList.remove('drag-over');
+    });
+
+    branchPreview.addEventListener('drop', (event) => {
+      event.preventDefault();
+      branchPreview.classList.remove('drag-over');
+      const droppedType = event.dataTransfer.getData('text/plain');
+      if (droppedType === 'timer') {
+        branchState.timer = 'on';
+        selectedPlacementWidget = null;
+        renderBranchPreview();
+      }
+      if (droppedType === 'discount') {
+        branchState.price = 'discount';
+        selectedPlacementWidget = null;
+        renderBranchPreview();
+      }
+    });
+
+    branchPreview.addEventListener('click', (event) => {
+      const widget = event.target.closest('[data-role="timer-widget"], [data-role="discount-widget"]');
+      if (!widget) return;
+      const widgetType = widget.dataset.role === 'discount-widget' ? 'discount' : 'timer';
+      if (event.target.closest('.timer-remove')) {
+        if (widgetType === 'timer') {
+          branchState.timer = 'off';
+        } else {
+          branchState.price = 'original';
+        }
+        selectedPlacementWidget = null;
+        renderBranchPreview();
+        return;
+      }
+      selectedPlacementWidget = widgetType;
+      renderBranchPreview();
+    });
+
+    finishMetricsButton.addEventListener('click', () => {
+      renderBranchMetricPanels();
+      metricsOverlay.classList.remove('hidden');
+    });
+
+    closeMetricsButton.addEventListener('click', () => {
+      metricsOverlay.classList.add('hidden');
+    });
+
+    metricsOverlay.addEventListener('click', (event) => {
+      if (event.target === metricsOverlay) {
+        metricsOverlay.classList.add('hidden');
+      }
+    });
 
     document.querySelectorAll('.branch-options').forEach((group) => {
       group.addEventListener('click', (event) => {
         const button = event.target.closest('.branch-option');
         if (!button) return;
         const key = group.dataset.key;
-        if (key === 'timer') {
-          if (button.dataset.value === 'on') {
-            stopBranchCountdown(true, false);
-          } else {
-            stopBranchCountdown(true, false);
-          }
-        }
         branchState[key] = button.dataset.value;
         group.querySelectorAll('.branch-option').forEach((option) => option.classList.toggle('active', option === button));
         renderBranchPreview();
