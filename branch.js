@@ -1,8 +1,11 @@
     const branchState = {
-      subscription: 'clear',
+      subscription: 'subscription',
       price: 'original',
       ad: 'distinct',
       timer: 'off',
+      purchaseNotice: false,
+      subscriptionSwitch: false,
+      intrusiveAd: false,
     };
 
     const branchPreview = document.getElementById('branchPreview');
@@ -21,6 +24,8 @@
     let branchCountdownTimerId = null;
     let branchCountdownFinished = false;
     let selectedPlacementWidget = null;
+    let purchaseModeAutoRevertTimerId = null;
+    let purchaseModeAutoRevertConsumed = false;
 
     function syncBranchWidgetStates(timerLabelText = 'この価格で買えるのは残り 05:00') {
       if (timerDraggable) {
@@ -33,6 +38,44 @@
       if (discountDraggable) {
         discountDraggable.classList.toggle('placed', branchState.price === 'discount');
       }
+      const purchaseNoticeDraggable = document.getElementById('purchaseNoticeDraggable');
+      if (purchaseNoticeDraggable) {
+        purchaseNoticeDraggable.classList.toggle('placed', branchState.purchaseNotice);
+      }
+      const subscriptionSwitchDraggable = document.getElementById('subscriptionSwitchDraggable');
+      if (subscriptionSwitchDraggable) {
+        subscriptionSwitchDraggable.classList.toggle('placed', branchState.subscriptionSwitch);
+      }
+      const intrusiveAdDraggable = document.getElementById('intrusiveAdDraggable');
+      if (intrusiveAdDraggable) {
+        intrusiveAdDraggable.classList.toggle('placed', branchState.intrusiveAd);
+      }
+    }
+
+    function clearPurchaseModeAutoRevertTimer() {
+      if (purchaseModeAutoRevertTimerId !== null) {
+        clearTimeout(purchaseModeAutoRevertTimerId);
+        purchaseModeAutoRevertTimerId = null;
+      }
+    }
+
+    function setPurchaseMode(mode, shouldScheduleAutoRevert = false) {
+      clearPurchaseModeAutoRevertTimer();
+      branchState.subscription = mode;
+      if (mode === 'one-time' && shouldScheduleAutoRevert && !purchaseModeAutoRevertConsumed) {
+        purchaseModeAutoRevertTimerId = setTimeout(() => {
+          purchaseModeAutoRevertTimerId = null;
+          purchaseModeAutoRevertConsumed = true;
+          branchState.subscription = 'subscription';
+          renderBranchPreview();
+        }, 10000);
+      }
+    }
+
+    function formatTodayPurchasedMessage(count) {
+      return currentLanguage === 'en'
+        ? `${count} people bought today!`
+        : `今日 ${count} 人が購入しました！`;
     }
 
     function formatCountdown(seconds) {
@@ -75,26 +118,37 @@
     }
 
     function computeBranchMetrics() {
+      const implementationCount = [
+        branchState.timer === 'on',
+        branchState.price === 'discount',
+        branchState.purchaseNotice,
+        branchState.subscriptionSwitch,
+        branchState.intrusiveAd,
+        branchState.subscriptionSwitch && branchState.subscription === 'one-time',
+      ].filter(Boolean).length;
       const buyers = 980
-        + (branchState.subscription === 'clear' ? 90 : 15)
-        + (branchState.price === 'discount' ? 70 : 12)
-        + (branchState.ad === 'distinct' ? 55 : 10)
-        + (branchState.timer === 'on' ? 40 : 6);
+        + (branchState.subscription === 'subscription' ? 12 : 24)
+        + (branchState.price === 'discount' ? 22 : 6)
+        + (branchState.purchaseNotice ? 70 : 0)
+        + (branchState.subscriptionSwitch ? 60 : 0)
+        + (branchState.intrusiveAd ? 48 : 0)
+        + (branchState.timer === 'on' ? 34 : 5)
+        + (branchState.subscriptionSwitch && branchState.subscription === 'one-time' ? 18 : 0);
       const reputation = 4.3
-        + (branchState.subscription === 'clear' ? 0.18 : 0.03)
-        + (branchState.price === 'discount' ? -0.22 : 0.02)
-        + (branchState.ad === 'distinct' ? 0.11 : 0.02)
-        + (branchState.timer === 'on' ? -0.2 : 0.01);
+        - (implementationCount * 0.18)
+        - (branchState.subscriptionSwitch && branchState.subscription === 'one-time' ? 0.15 : 0)
+        - (branchState.price === 'discount' ? 0.08 : 0);
       const trust = 86
-        + (branchState.subscription === 'clear' ? 5 : -2)
-        + (branchState.price === 'discount' ? -7 : -1)
-        + (branchState.ad === 'distinct' ? 3 : 1)
-        + (branchState.timer === 'on' ? -8 : 0);
-      const profit = 124
-        + (branchState.subscription === 'clear' ? 24 : 8)
-        + (branchState.price === 'discount' ? 20 : 6)
-        + (branchState.ad === 'distinct' ? 16 : 4)
-        + (branchState.timer === 'on' ? 12 : 3);
+        - (implementationCount * 6)
+        - (branchState.subscriptionSwitch && branchState.subscription === 'one-time' ? 5 : 0)
+        - (branchState.price === 'discount' ? 4 : 0)
+        + (branchState.ad === 'distinct' ? 2 : -2);
+      const profit = 72
+        + Math.round(buyers * 0.08)
+        - (implementationCount * 2)
+        - (branchState.subscriptionSwitch && branchState.subscription === 'one-time' ? 2 : 0)
+        - (branchState.price === 'discount' ? 1 : 0)
+        + (branchState.ad === 'distinct' ? 2 : 0);
 
       return [
         { label: t('buyersLabel'), value: buyers, max: 1400, suffix: t('buyersSuffix'), color: '#2563eb', decimals: 0, display: 'number' },
@@ -111,17 +165,17 @@
     function getResultSummary(metrics) {
       const [buyersMetric, reputationMetric, trustMetric, profitMetric] = metrics;
       const compositeScore = (
-        getMetricRatio(buyersMetric) * 0.27
-        + getMetricRatio(reputationMetric) * 0.25
-        + getMetricRatio(trustMetric) * 0.24
-        + getMetricRatio(profitMetric) * 0.24
+        (1 - getMetricRatio(reputationMetric)) * 0.28
+        + (1 - getMetricRatio(trustMetric)) * 0.34
+        + (1 - getMetricRatio(profitMetric)) * 0.18
+        + getMetricRatio(buyersMetric) * 0.2
       );
       const summaries = [
-        '短期の押し出しは強いですが、信頼は少し落ちやすいです。',
-        '購入者数は伸びやすく、利益も取りやすい結果です。',
-        '見た目は強めでも、評価の維持には少し注意が必要です。',
-        '全体としては攻めた結果で、購入意欲は上げやすいです。',
-        'かなり強い訴求ですが、長期の信頼は削られやすいです。',
+        'まだ軽い段階ですが、違和感はすでに出始めています。',
+        '短期の購入は伸びますが、信頼は目に見えて削れます。',
+        '演出が増えるほど、評価と継続率はかなり危うくなります。',
+        '強引さが前面に出て、長期のブランド価値は落ちやすいです。',
+        'ダークパターンが濃く、スコアはかなり低い状態です。',
       ];
       const index = Math.min(summaries.length - 1, Math.max(0, Math.floor(compositeScore * summaries.length)));
       return summaries[index];
@@ -291,10 +345,10 @@
     }
 
     function renderBranchPreview() {
-      const subscriptionVariant = branchState.subscription === 'clear' ? 'clear' : 'hidden';
-      const subscriptionTextMarkup = branchState.subscription === 'clear'
+      const subscriptionVariant = branchState.subscription === 'subscription' ? 'subscription' : 'one-time';
+      const subscriptionTextMarkup = branchState.subscription === 'subscription'
         ? '⚠︎ 月1回の定期便です / 毎月15日に引き落とし'
-        : '定期便';
+        : '一回限りの購入';
       const timerText = branchState.timer === 'on'
         ? formatCountdown(branchCountdownSeconds)
         : '';
@@ -320,10 +374,53 @@
         stopBranchCountdown(true, false);
       }
 
-      const subscriptionMarkup = `<button type="button" class="subscription-callout ${subscriptionVariant} ${selectedPlacementWidget === 'subscription' ? 'selected' : ''}" data-role="subscription-widget" aria-label="定期便の表示を切り替える">
-        <span class="subscription-change-mark">⇄</span>
-        <span class="subscription-callout-text">${subscriptionTextMarkup}</span>
-      </button>`;
+      const subscriptionMarkup = branchState.subscriptionSwitch ? `
+        <div class="subscription-widget-shell ${selectedPlacementWidget === 'subscription' ? 'selected' : ''}" data-role="subscription-widget">
+          <button type="button" class="subscription-callout ${subscriptionVariant}" aria-label="定期便の表示を切り替える">
+            <span class="subscription-change-mark">⇄</span>
+            <span class="subscription-callout-text">${subscriptionTextMarkup}</span>
+          </button>
+          ${selectedPlacementWidget === 'subscription' ? '<button class="subscription-remove" type="button" aria-label="削除">×</button>' : ''}
+        </div>
+      ` : '';
+      const purchaseModeMarkup = branchState.subscriptionSwitch ? `
+        <div class="purchase-mode-switch" role="group" aria-label="購入方法の切り替え">
+          <button type="button" class="purchase-mode-button ${branchState.subscription === 'subscription' ? 'active' : ''}" data-purchase-mode="subscription">
+            <span class="purchase-mode-dot">◎</span>
+            <span>${t('purchaseModeSubscription')}</span>
+          </button>
+          <button type="button" class="purchase-mode-button ${branchState.subscription === 'one-time' ? 'active' : ''}" data-purchase-mode="one-time">
+            <span class="purchase-mode-dot">◎</span>
+            <span>${t('purchaseModeOneTime')}</span>
+          </button>
+        </div>
+        <div class="purchase-mode-note ${branchState.subscription === 'one-time' ? 'visible' : ''}">
+          ${branchState.subscription === 'one-time' && !purchaseModeAutoRevertConsumed ? t('purchaseModeAutoRevert') : '&nbsp;'}
+        </div>
+      ` : '';
+      const todayPurchasedCount = 108
+        + (branchState.purchaseNotice ? 58 : 0)
+        + (branchState.subscriptionSwitch ? 42 : 0)
+        + (branchState.subscriptionSwitch && branchState.subscription === 'one-time' ? 16 : 0)
+        + (branchState.intrusiveAd ? 30 : 0)
+        + (branchState.price === 'discount' ? 10 : 0)
+        + (branchState.timer === 'on' ? 8 : 0);
+      const socialProofMarkup = branchState.purchaseNotice ? `
+        <div class="social-proof-popup" aria-label="購入者数の通知">
+          <div class="social-proof-badge">${t('socialProofBadge')}</div>
+          <div class="social-proof-text">${formatTodayPurchasedMessage(todayPurchasedCount)}</div>
+          <div class="social-proof-subtext">${t('socialProofSubtext')}</div>
+          ${selectedPlacementWidget === 'purchaseNotice' ? '<button class="social-proof-remove" type="button" aria-label="削除">×</button>' : ''}
+        </div>
+      ` : '';
+      const adBannerMarkup = branchState.intrusiveAd ? `
+        <div class="intrusive-ad-banner ${selectedPlacementWidget === 'intrusiveAd' ? 'selected' : ''}">
+          <div class="intrusive-ad-label">${t('intrusiveAdLabel')}</div>
+          <div class="intrusive-ad-copy">${t('intrusiveAdCopy')}</div>
+          <div class="intrusive-ad-note">${t('intrusiveAdNote')}</div>
+          ${selectedPlacementWidget === 'intrusiveAd' ? '<button class="intrusive-ad-remove" type="button" aria-label="削除">×</button>' : ''}
+        </div>
+      ` : '';
       const timerInlineLabel = `この価格で買えるのは残り ${timerText || '05:00'}`;
       const timerInlineMarkup = branchState.timer === 'on'
         ? `<span class="timer-inline ${selectedPlacementWidget === 'timer' ? 'selected' : ''}" data-role="timer-widget">
@@ -342,8 +439,9 @@
 
       branchPreview.innerHTML = `
         <div class="branch-preview-card">
+          ${socialProofMarkup}
           <div class="preview-top">
-            <span class="preview-tag">${branchState.subscription === 'clear' ? t('subscriptionTag') : t('normalPurchaseTag')}</span>
+            <span class="preview-tag">${branchState.subscription === 'subscription' ? t('subscriptionTag') : t('normalPurchaseTag')}</span>
             <span class="preview-subtle">${branchState.ad === 'distinct' ? t('adTag') : t('recommendedTag')}</span>
           </div>
           <h3 class="product-title">${t('productName')}</h3>
@@ -353,6 +451,8 @@
             ${discountInlineMarkup}
             ${timerInlineMarkup}
           </div>
+          ${adBannerMarkup}
+          ${purchaseModeMarkup}
           ${subscriptionMarkup}
           <div class="promo-badges"></div>
           <button class="preview-cta">${t('purchaseButton')}</button>
@@ -371,6 +471,27 @@
     if (discountDraggable) {
       discountDraggable.addEventListener('dragstart', (event) => {
         event.dataTransfer.setData('text/plain', 'discount');
+        event.dataTransfer.effectAllowed = 'copy';
+      });
+    }
+    const purchaseNoticeDraggable = document.getElementById('purchaseNoticeDraggable');
+    if (purchaseNoticeDraggable) {
+      purchaseNoticeDraggable.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', 'purchaseNotice');
+        event.dataTransfer.effectAllowed = 'copy';
+      });
+    }
+    const subscriptionSwitchDraggable = document.getElementById('subscriptionSwitchDraggable');
+    if (subscriptionSwitchDraggable) {
+      subscriptionSwitchDraggable.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', 'subscriptionSwitch');
+        event.dataTransfer.effectAllowed = 'copy';
+      });
+    }
+    const intrusiveAdDraggable = document.getElementById('intrusiveAdDraggable');
+    if (intrusiveAdDraggable) {
+      intrusiveAdDraggable.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', 'intrusiveAd');
         event.dataTransfer.effectAllowed = 'copy';
       });
     }
@@ -398,10 +519,39 @@
         selectedPlacementWidget = null;
         renderBranchPreview();
       }
+      if (droppedType === 'purchaseNotice') {
+        branchState.purchaseNotice = true;
+        selectedPlacementWidget = 'purchaseNotice';
+        renderBranchPreview();
+      }
+      if (droppedType === 'subscriptionSwitch') {
+        branchState.subscriptionSwitch = true;
+        selectedPlacementWidget = 'subscription';
+        renderBranchPreview();
+      }
+      if (droppedType === 'intrusiveAd') {
+        branchState.intrusiveAd = true;
+        selectedPlacementWidget = 'intrusiveAd';
+        renderBranchPreview();
+      }
     });
 
     branchPreview.addEventListener('click', (event) => {
-      const widget = event.target.closest('[data-role="timer-widget"], [data-role="discount-widget"], [data-role="subscription-widget"]');
+      const purchaseModeButton = event.target.closest('[data-purchase-mode]');
+      if (purchaseModeButton) {
+        const selectedMode = purchaseModeButton.dataset.purchaseMode;
+        if (selectedMode === 'subscription') {
+          setPurchaseMode('subscription');
+        } else if (selectedMode === 'one-time') {
+          setPurchaseMode('one-time', !purchaseModeAutoRevertConsumed);
+        }
+        selectedPlacementWidget = null;
+        renderBranchPreview();
+        return;
+      }
+      const isPurchaseNotice = event.target.closest('.social-proof-popup');
+      const isIntrusiveAd = event.target.closest('.intrusive-ad-banner');
+      const widget = event.target.closest('[data-role="timer-widget"], [data-role="discount-widget"], [data-role="subscription-widget"], .social-proof-popup, .intrusive-ad-banner');
       if (!widget) {
         const clickedInsidePreview = event.target.closest('.branch-preview-card, .branch-preview');
         const clickedInteractiveElement = event.target.closest('button, a, input, textarea, select');
@@ -415,7 +565,11 @@
         ? 'discount'
         : widget.dataset.role === 'subscription-widget'
           ? 'subscription'
-          : 'timer';
+          : widget.classList.contains('social-proof-popup')
+            ? 'purchaseNotice'
+            : widget.classList.contains('intrusive-ad-banner')
+              ? 'intrusiveAd'
+              : 'timer';
       if (event.target.closest('.timer-remove, .discount-remove')) {
         if (widgetType === 'timer') {
           branchState.timer = 'off';
@@ -428,9 +582,31 @@
         renderBranchPreview();
         return;
       }
+      if (event.target.closest('.social-proof-remove')) {
+        branchState.purchaseNotice = false;
+        selectedPlacementWidget = null;
+        renderBranchPreview();
+        return;
+      }
+      if (event.target.closest('.intrusive-ad-remove')) {
+        branchState.intrusiveAd = false;
+        selectedPlacementWidget = null;
+        renderBranchPreview();
+        return;
+      }
+      if (event.target.closest('.subscription-remove')) {
+        branchState.subscriptionSwitch = false;
+        branchState.subscription = 'subscription';
+        clearPurchaseModeAutoRevertTimer();
+        purchaseModeAutoRevertConsumed = false;
+        selectedPlacementWidget = null;
+        renderBranchPreview();
+        return;
+      }
       if (widgetType === 'subscription') {
         if (event.target.closest('.subscription-change-mark')) {
-          branchState.subscription = branchState.subscription === 'clear' ? 'hidden' : 'clear';
+          const nextMode = branchState.subscription === 'subscription' ? 'one-time' : 'subscription';
+          setPurchaseMode(nextMode, nextMode === 'one-time' && !purchaseModeAutoRevertConsumed);
           selectedPlacementWidget = 'subscription';
           renderBranchPreview();
           return;
