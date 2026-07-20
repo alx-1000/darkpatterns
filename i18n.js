@@ -2,7 +2,7 @@
       ja: {
         title: 'ダークパターンシミュレーター',
         sectionSettings: '分岐設定',
-        sectionSettingsNote: '4つの要素を切り替えて、同じ商品でも見え方がどう変わるかを比較できます。',
+        sectionSettingsNote: '要素を追加して、売上を伸ばそう。',
         subscriptionClear: '定期便を明確にする',
         subscriptionHidden: '定期便を明確にする',
         subscriptionLabel: '1. 定期便を明確にする',

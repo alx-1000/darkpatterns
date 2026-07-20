@@ -3,93 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dark Pattern Simulator</title>
+  <title>Dark Pattern Simulator | トップページ</title>
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./home.css" />
 </head>
-<body>
-  <div class="language-toggle">
-    <button class="lang-btn active" data-lang="ja">JP</button>
-    <button class="lang-btn" data-lang="en">EN</button>
-  </div>
-  <div class="branch-shell">
-    <section class="panel branch-panel">
-      <h2 data-text="sectionSettings">分岐設定</h2>
-      <p class="section-note" data-text="sectionSettingsNote">4つの要素を切り替えて、同じ商品でも見え方がどう変わるかを比較できます。</p>
-      <div class="branch-layout">
-        <div class="branch-left">
-          <div class="branch-card">
-            <h3 data-text="timerLabel">4. カウントダウンタイマー / 15% オフ</h3>
-            <p class="timer-drop-hint">ドラッグしてプレビューに置いてください。</p>
-            <div id="timerDraggable" class="timer-drag-item timer-placement" data-kind="timer" draggable="true">
-              <span>⏱</span>
-              <span>この価格で買えるのは残り 05:00</span>
-            </div>
-            <div id="discountDraggable" class="timer-drag-item timer-placement" data-kind="discount" draggable="true">
-              <span>🏷</span>
-              <span>今だけ 15%OFF</span>
-            </div>
-            
-            <div id="purchaseNoticeDraggable" class="timer-drag-item timer-placement" data-kind="purchaseNotice" draggable="true">
-              <span>🔔</span>
-              <span>今日◯◯人が購入しました！</span>
-            </div>
-            <div id="subscriptionSwitchDraggable" class="timer-drag-item timer-placement" data-kind="subscriptionSwitch" draggable="true">
-              <span>◎</span>
-              <span>定期便 / 一回限りの切替</span>
-            </div>
-            <div id="intrusiveAdDraggable" class="timer-drag-item timer-placement" data-kind="intrusiveAd" draggable="true">
-              <span>📢</span>
-              <span>邪魔な広告を表示する</span>
-            </div>
-          </div>
-        </div>
-        <div class="branch-center">
-          <div class="branch-preview" id="branchPreview"></div>
-        </div>
-        <div class="branch-right">
-          <div class="branch-score">
-            <button type="button" class="finish-button" id="finishMetricsButton" data-text="finishMetrics">完成</button>
-            <div class="branch-metrics-content" id="branchMetricsContent">
-              <h3 data-text="predictionTitle">スコア予測</h3>
-              <div class="branch-chart" id="branchChart"></div>
-            </div>
+<body class="home-page">
+  <div class="home-shell">
+    <section class="home-hero">
+      <div class="home-hero-grid">
+        <div>
+          <p class="home-kicker">Dark Pattern Simulator</p>
+          <h1 class="home-title">EC編 / サブスク編</h1>
+          <p class="home-copy">どちらかを選んで開始。</p>
+          <div class="home-actions">
+            <a class="home-action primary" href="./ec.html">EC編を開く</a>
+            <a class="home-action secondary" href="./subscription.html">サブスク編を開く</a>
           </div>
         </div>
       </div>
     </section>
-  </div>
 
-  <div class="main">
-    <section class="panel">
-      <div class="panel-sub">
-        <h2 data-text="eventLog">イベントログ</h2>
-        <div class="log-list" id="logContainer"></div>
-      </div>
-      <div class="panel-sub">
-        <h2 data-text="appliedElements">あなたが追加した要素</h2>
-        <ul id="appliedElements"></ul>
-      </div>
+    <section class="entry-grid" aria-label="Scenario list">
+      <a class="entry-card" href="./ec.html">
+        <span class="entry-tag">EC編</span>
+        <h2 class="entry-title">商品ページ</h2>
+        <div class="entry-foot">
+          <span class="entry-cta">EC編を開く →</span>
+          <span class="entry-note">画像は後で追加</span>
+        </div>
+      </a>
+
+      <a class="entry-card" href="./subscription.html">
+        <span class="entry-tag">サブスク編</span>
+        <h2 class="entry-title">継続課金ページ</h2>
+        <div class="entry-foot">
+          <span class="entry-cta">サブスク編を開く →</span>
+          <span class="entry-note">画像は後で追加</span>
+        </div>
+      </a>
     </section>
-  </div>
 
-  <div class="overlay hidden" id="abOverlay">
-    <div class="modal-card" id="abCard"></div>
+    <div class="home-footer">Dark Pattern Simulator</div>
   </div>
-  <div class="overlay hidden" id="messageOverlay">
-    <div class="message-card" id="messageCard"></div>
-  </div>
-  <div class="overlay hidden" id="metricsOverlay">
-    <div class="modal-card result-modal">
-      <div class="metric-modal-head">
-        <h3>Result</h3>
-        <button type="button" class="button secondary" id="closeMetricsButton">閉じる</button>
-      </div>
-      <div id="metricsPopupContent"></div>
-    </div>
-  </div>
-
-  <script src="./i18n.js"></script>
-  <script src="./branch.js"></script>
-  <script src="./game.js"></script>
 </body>
 </html>
