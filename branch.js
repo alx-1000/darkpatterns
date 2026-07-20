@@ -118,14 +118,7 @@
     }
 
     function computeBranchMetrics() {
-      const implementationCount = [
-        branchState.timer === 'on',
-        branchState.price === 'discount',
-        branchState.purchaseNotice,
-        branchState.subscriptionSwitch,
-        branchState.intrusiveAd,
-        branchState.subscriptionSwitch && branchState.subscription === 'one-time',
-      ].filter(Boolean).length;
+      const implementationCount = getImplementationCount();
       const buyers = 980
         + (branchState.subscription === 'subscription' ? 12 : 24)
         + (branchState.price === 'discount' ? 22 : 6)
@@ -179,6 +172,94 @@
       ];
       const index = Math.min(summaries.length - 1, Math.max(0, Math.floor(compositeScore * summaries.length)));
       return summaries[index];
+    }
+
+    function getImplementationCount() {
+      return [
+        branchState.timer === 'on',
+        branchState.price === 'discount',
+        branchState.purchaseNotice,
+        branchState.subscriptionSwitch,
+        branchState.intrusiveAd,
+        branchState.subscriptionSwitch && branchState.subscription === 'one-time',
+      ].filter(Boolean).length;
+    }
+
+    function buildReviewEntries(metrics) {
+      const [, reputationMetric, trustMetric] = metrics;
+      const implementationCount = getImplementationCount();
+      const reputationRatio = getMetricRatio(reputationMetric);
+      const trustRatio = getMetricRatio(trustMetric);
+      const intensePattern = implementationCount >= 5 || reputationRatio < 0.35 || trustRatio < 0.4;
+      const badPattern = implementationCount >= 3 || reputationRatio < 0.62 || trustRatio < 0.66;
+      const mixedPattern = implementationCount >= 2 || reputationRatio < 0.82 || trustRatio < 0.82;
+      const language = currentLanguage === 'en' ? 'en' : 'ja';
+
+      const reviewPools = {
+        ja: {
+          excellent: [
+            { stars: 5, title: '梱包も丁寧で安心でした', body: '説明どおりの商品で、届くまでの流れも分かりやすかったです。定期便の案内も明確で、気持ちよく買い物できました。', author: '購入者', date: '2026/07/20' },
+            { stars: 5, title: '想像以上に満足', body: '値段に対して内容がしっかりしていて、無駄な押し売り感もありませんでした。家族にも勧めやすいです。', author: '購入者', date: '2026/07/19' },
+            { stars: 5, title: '見やすくて買いやすい', body: '注文画面がシンプルで、必要な情報だけが自然にまとまっていました。初めてでも迷わず購入できました。', author: '購入者', date: '2026/07/18' },
+            { stars: 5, title: 'また買いたいです', body: '発送も早く、問い合わせへの返答も丁寧でした。余計な表示が少なく、安心感のあるショップだと思います。', author: '購入者', date: '2026/07/17' },
+            { stars: 5, title: '期待以上でした', body: '商品の品質だけでなく、表示や案内も誠実で好印象でした。友人にもすすめたいと思える内容です。', author: '購入者', date: '2026/07/16' },
+          ],
+          mixed: [
+            { stars: 4, title: '商品は良いが少し気になる', body: '使い心地は満足ですが、案内がやや強めに感じる部分がありました。もう少し落ち着いた表示だとさらに良いです。', author: '購入者', date: '2026/07/20' },
+            { stars: 4, title: '概ね満足', body: '届いた商品には満足しています。定期便の説明がもう少し分かりやすければ、もっと安心して買えたと思います。', author: '購入者', date: '2026/07/19' },
+            { stars: 3, title: '便利だけど少し不安', body: '内容は悪くないのですが、急かされるような表示が多くて落ち着いて選べませんでした。購入前の確認は必須です。', author: '購入者', date: '2026/07/18' },
+            { stars: 4, title: '価格と品質は悪くない', body: '商品そのものは良かったです。ただ、見せ方が少し強いので、人によっては警戒するかもしれません。', author: '購入者', date: '2026/07/17' },
+            { stars: 3, title: '表示がやや分かりづらい', body: '届いたあとに確認したら、思っていたより説明が細かくて少し戸惑いました。購入前にしっかり読んだ方がいいです。', author: '購入者', date: '2026/07/16' },
+          ],
+          bad: [
+            { stars: 2, title: '定期便の表示が分かりにくい', body: '一回だけ買うつもりでしたが、あとから定期便だと気づいて驚きました。注文前にもっと分かりやすくしてほしいです。', author: '購入者', date: '2026/07/20' },
+            { stars: 1, title: '騙された気分です', body: '購入ボタンばかり目立っていて、定期便の説明を見落としました。解約の導線も分かりづらく、かなり不満です。', author: '購入者', date: '2026/07/19' },
+            { stars: 2, title: '強引な見せ方が気になる', body: 'レビュー風の表示で安心したのに、実際は案内が多くて混乱しました。普通の買い物のつもりだったので残念です。', author: '購入者', date: '2026/07/18' },
+            { stars: 1, title: '勝手に定期便になっていた', body: '注文後に明細を見て気づきました。定期便の説明が目立たず、解約方法も分かりにくいのでおすすめできません。', author: '購入者', date: '2026/07/17' },
+            { stars: 2, title: 'クレームを入れたいレベル', body: '表示が紛らわしく、購入したのに安心できませんでした。問い合わせても分かりにくく、かなりストレスが残りました。', author: '購入者', date: '2026/07/16' },
+          ],
+          critical: [
+            { stars: 1, title: '完全に騙された', body: '普通の買い切りだと思って注文したら、実際は定期便でした。説明が見つけにくく、かなり悪質だと感じました。', author: '購入者', date: '2026/07/20' },
+            { stars: 1, title: '解約が面倒すぎる', body: '勝手に定期便に入れられたように感じます。解約ページも分かりにくく、買い物としては最悪でした。', author: '購入者', date: '2026/07/19' },
+            { stars: 1, title: '二度と買いません', body: '星1も付けたくないです。購入前の表示が分かりづらく、問い合わせてもたらい回しで不快でした。', author: '購入者', date: '2026/07/18' },
+            { stars: 1, title: 'だまし要素が多すぎる', body: 'タイマーやおすすめ表示で急かされ、内容を冷静に確認できませんでした。届いてから後悔する典型例です。', author: '購入者', date: '2026/07/17' },
+            { stars: 1, title: 'クレーム案件です', body: '定期便の有無が分かりにくく、返品や解約の説明も不親切でした。こんな売り方は信頼できません。', author: '購入者', date: '2026/07/16' },
+          ],
+        },
+        en: {
+          excellent: [
+            { stars: 5, title: 'Careful packaging and reassuring', body: 'The product matched the description, and the whole flow was easy to understand. The subscription notice was clear, so I could buy with confidence.', author: 'Buyer', date: '2026/07/20' },
+            { stars: 5, title: 'Better than expected', body: 'The value for the price is solid, and there was no pushy sales pressure. It is easy to recommend to family and friends.', author: 'Buyer', date: '2026/07/19' },
+            { stars: 5, title: 'Easy to order', body: 'The checkout page was simple and the important details were arranged naturally. Even first-time buyers would not get lost.', author: 'Buyer', date: '2026/07/18' },
+            { stars: 5, title: 'Would buy again', body: 'Shipping was fast and support was polite. The page avoided unnecessary clutter, which made the store feel trustworthy.', author: 'Buyer', date: '2026/07/17' },
+            { stars: 5, title: 'Excellent overall', body: 'Not only the product, but the labeling and guidance felt honest. This is the kind of shop I would return to.', author: 'Buyer', date: '2026/07/16' },
+          ],
+          mixed: [
+            { stars: 4, title: 'Good product, a bit noisy', body: 'I am happy with the item itself, but a few messages felt a little too strong. A calmer presentation would make it better.', author: 'Buyer', date: '2026/07/20' },
+            { stars: 4, title: 'Mostly satisfied', body: 'The product arrived as expected. The subscription details could be clearer, which would make the purchase feel safer.', author: 'Buyer', date: '2026/07/19' },
+            { stars: 3, title: 'Useful, but slightly uneasy', body: 'The content is not bad, but there were many rush cues that made it hard to compare calmly. I would double-check before ordering.', author: 'Buyer', date: '2026/07/18' },
+            { stars: 4, title: 'Price and quality are fine', body: 'The product itself is good. The presentation is a bit aggressive, so some shoppers may hesitate.', author: 'Buyer', date: '2026/07/17' },
+            { stars: 3, title: 'The labeling was unclear', body: 'After checking the order, I realized the details were more complicated than I thought. Read everything carefully before purchasing.', author: 'Buyer', date: '2026/07/16' },
+          ],
+          bad: [
+            { stars: 2, title: 'Subscription details were hard to spot', body: 'I only wanted a one-time purchase, but later found out it was a subscription. The disclosure should be much clearer.', author: 'Buyer', date: '2026/07/20' },
+            { stars: 1, title: 'Felt misleading', body: 'Only the buy button stood out, while the subscription explanation was easy to miss. Canceling was also hard to find.', author: 'Buyer', date: '2026/07/19' },
+            { stars: 2, title: 'Too pushy for my taste', body: 'The review-style display made the store look reassuring, but the actual checkout felt confusing. I expected a normal purchase.', author: 'Buyer', date: '2026/07/18' },
+            { stars: 1, title: 'It turned into a subscription', body: 'I noticed from the receipt that it was a subscription. The cancellation steps were not obvious, so I cannot recommend it.', author: 'Buyer', date: '2026/07/17' },
+            { stars: 2, title: 'Worth a complaint', body: 'The labeling was confusing, and I did not feel safe after ordering. Support did not make things clearer either.', author: 'Buyer', date: '2026/07/16' },
+          ],
+          critical: [
+            { stars: 1, title: 'Completely misleading', body: 'I thought I was buying a regular item, but it turned out to be a subscription. The explanation was hidden too well.', author: 'Buyer', date: '2026/07/20' },
+            { stars: 1, title: 'Canceling was a hassle', body: 'It felt like I was signed up for a subscription by default. The cancellation page was hard to find and the experience was awful.', author: 'Buyer', date: '2026/07/19' },
+            { stars: 1, title: 'Never again', body: 'I would not even give this one star. The purchase screen was misleading and support bounced me around.', author: 'Buyer', date: '2026/07/18' },
+            { stars: 1, title: 'Too many dark patterns', body: 'Timer pressure and recommendation labels pushed me too hard. I could not calmly review the terms and regretted ordering.', author: 'Buyer', date: '2026/07/17' },
+            { stars: 1, title: 'A real complaint case', body: 'The subscription terms and cancellation info were not clear at all. This kind of sales tactic destroys trust.', author: 'Buyer', date: '2026/07/16' },
+          ],
+        },
+      };
+
+      const tier = intensePattern ? 'critical' : (badPattern ? 'bad' : (mixedPattern ? 'mixed' : 'excellent'));
+      return reviewPools[language][tier].slice(0, 5);
     }
 
     function formatMetricValue(value, decimals = 0) {
@@ -255,6 +336,7 @@
       const metrics = computeBranchMetrics();
       const [buyersMetric, reputationMetric, trustMetric, profitMetric] = metrics;
       const predictionItems = buildPredictionItems(metrics);
+      const reviewItems = buildReviewEntries(metrics);
       const predictionMarkup = `
         <div class="prediction-grid">
           ${predictionItems.map((item) => `
@@ -336,6 +418,27 @@
             </div>
           </div>
         </div>
+        <section class="result-card result-review-card">
+          <div class="result-card-head">
+            <h4>${t('customerReviews')}</h4>
+            <div class="result-card-sub">${reviewItems.length}件</div>
+          </div>
+          <div class="result-reviews">
+            ${reviewItems.map((review) => `
+              <article class="review-item">
+                <div class="review-item-head">
+                  <div>
+                    <div class="review-stars" aria-label="${review.stars}/5">${'★'.repeat(review.stars)}${'☆'.repeat(5 - review.stars)}</div>
+                    <div class="review-meta">${review.author} ・ ${review.date}</div>
+                  </div>
+                  <div class="review-score">${review.stars}.0</div>
+                </div>
+                <div class="review-title">${review.title}</div>
+                <p class="review-body">${review.body}</p>
+              </article>
+            `).join('')}
+          </div>
+        </section>
       `;
       branchChart.innerHTML = predictionMarkup;
       if (metricsPopupContent) {
