@@ -16,35 +16,50 @@
 <body class="scenario-page">
   <div class="branch-shell">
     <header class="scenario-header">
-      <h1 data-text="scenarioTitle">EC編</h1>
+      <h1 data-text="scenarioTitle">ネットショッピング編</h1>
       <a class="scenario-home-link" href="../index.html">トップページへ</a>
     </header>
     <section class="panel branch-panel">
       <div class="branch-layout">
         <div class="branch-left">
           <div class="branch-card">
-            <h3 data-text="timerLabel">4. カウントダウンタイマー / 15% オフ</h3>
-            <p class="timer-drop-hint">ドラッグしてプレビューに置いてください。</p>
-            <div id="timerDraggable" class="timer-drag-item timer-placement" data-kind="timer" draggable="true">
-              <span>⏱</span>
-              <span>この価格で買えるのは残り 05:00</span>
+            <h2>カスタマイズ</h2>
+
+            <section>オプション1: 誇大表示</section>
+            <div id="timerDraggable" class="item" back data-kind="timer" draggable="true">
+              <div class="custom-preview">
+                <h4 style="color: #333;">35Lの超巨大冷蔵庫!!</h4>
+              </div>
             </div>
-            <div id="discountDraggable" class="timer-drag-item timer-placement" data-kind="discount" draggable="true">
-              <span>🏷</span>
-              <span>今だけ 15%OFF</span>
+
+            <section>オプション2: 嘘の割引表示</section>
+            <div id="discountDraggable" class="item" background="white" data-kind="discount" draggable="true">
+              <img src="../assets/images/discount.png"  height="100" style="background: white;" alt="割引バッジ" />
             </div>
             
-            <div id="purchaseNoticeDraggable" class="timer-drag-item timer-placement" data-kind="purchaseNotice" draggable="true">
-              <span>🔔</span>
-              <span>今日◯◯人が購入しました！</span>
+            <section>オプション3: Saleバナー</section>
+            <div id="saleBadgeDraggable" class="item" data-kind="saleBadge" draggable="true">
+              <div class="sale-badge" >
+                <p> SALE! SALE! SALE! </p> 
+              </div>
             </div>
-            <div id="subscriptionSwitchDraggable" class="timer-drag-item timer-placement" data-kind="subscriptionSwitch" draggable="true">
-              <span>◎</span>
-              <span>定期便 / 一回限りの切替</span>
+
+            <section>オプション4: チェックボックス</section>
+            <div id="subscriptionSwitchDraggable" class="item" data-kind="subscriptionSwitch" draggable="true">
+              <label class="option-mini-check">
+                <div></div>
+                <input type="checkbox" checked />
+                <span>お知らせを希望する</span>
+              </label>
             </div>
-            <div id="intrusiveAdDraggable" class="timer-drag-item timer-placement" data-kind="intrusiveAd" draggable="true">
-              <span>📢</span>
-              <span>邪魔な広告を表示する</span>
+
+            <section>オプション5: 利用規約</section>
+            <div id="termsDraggable" class="item" data-kind="terms" draggable="true">
+              <div>利用規約</div>
+              <label class="option-mini-check">
+                <input type="checkbox" checked />
+                <span>同意します</span>
+              </label>
             </div>
           </div>
         </div>
@@ -57,10 +72,10 @@
 
         <div class="branch-right">
           <div class="branch-score">
-            <button type="button" class="finish-button" id="finishMetricsButton" data-text="finishMetrics">完成</button>
             <div class="branch-metrics-content" id="branchMetricsContent">
               <h3 data-text="predictionTitle">スコア予測</h3>
               <div class="branch-chart" id="branchChart"></div>
+              <button type="button" class="finish-button" id="finishMetricsButton" data-text="finishMetrics">完成</button>
             </div>
           </div>
         </div>

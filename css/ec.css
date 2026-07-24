@@ -1,7 +1,8 @@
-
 .ec-inner-page {
   font-family: 'Kosugi Maru', sans-serif;
   text-align: center;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .ec-inner-page .ec-header {
@@ -20,12 +21,39 @@
   border: 2px solid black;
   padding: 1rem;
   margin-bottom: 1rem;
+  /* padding: 10px; */
+  margin: 15px;
 }
 
 .product-card h3 {
-  font-size: 50px;
+  font-size: 45px;
+  white-space: nowrap;
   font-weight: normal;
   margin-bottom: 0.5rem;
+}
+
+.product-title-wrap,
+.product-title {
+  position: relative;
+}
+
+.product-title-wrap.selected {
+  outline: 2px dashed #dc2626;
+  outline-offset: 4px;
+}
+
+.campaign-label {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  background-color: #CF284B;
+  color: white;
+  border-radius: 40px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  
 }
 
 .product-text {
@@ -58,14 +86,23 @@
   line-height: 1.5rem;
 }
 
+/* 価格 */
+.price-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin: 10px;
+}
+
 .price-main {
   font-size: 100px;
   color: #CF284B;
   font-weight: bold;
-  margin: 100px;
+  margin: 20px;
 }
 
-.ec-inner-page button {
+.ec-inner-page .purchaseButton {
   background-color: #CF284B;
   color: white;
   border: none;
@@ -74,5 +111,70 @@
   cursor: pointer;
   border-radius: 30px;
   padding: 45px 15px;
-  margin: 5rem;
+  margin: 10px;
+}
+
+
+/* SALEバッジ */
+.sale-badge {
+  font-family: 'Inter', sans-serif;
+  font-weight: bold;
+  font-size: 1.5rem;
+  color: #E7FF6D;
+  background-color: #CF284B;
+  padding: 0.1rem;
+  text-align: center;
+  text-wrap: nowrap;
+  word-spacing: 1em;
+} 
+
+.sale-badge p {
+  padding-right: 4rem;
+} 
+
+.ec-inner-page .sale-marquee {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.ec-inner-page .sale-marquee p {
+  display: flex;
+  width: 200%;
+  min-width: 200%;
+  padding-right: 0;
+  margin: 0;
+  animation: sale-marquee-scroll 9s linear infinite;
+}
+
+.ec-inner-page .sale-marquee span {
+  flex: 0 0 50%;
+  padding-right: 2.5rem;
+}
+
+.custom-preview {
+  background: white;
+  text-align: center;
+  padding: 1rem;
+  width: 100%;
+}
+
+h4 {
+  font-family: 'Kosugi Maru', sans-serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #CF284B;
+  margin: 0;
+  padding: 0.2rem;
+}
+
+
+@keyframes sale-marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }

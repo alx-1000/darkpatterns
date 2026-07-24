@@ -1,99 +1,211 @@
     const branchState = {
-      subscription: 'subscription',
       price: 'original',
       ad: 'distinct',
       timer: 'off',
-      purchaseNotice: false,
+      emphasis: 'none',
+      saleBadge: false,
       subscriptionSwitch: false,
+      productNotice: false,
+      premiumDelivery: false,
+      noWrapping: false,
+      promoEmail: false,
       intrusiveAd: false,
+      terms: false,
+      termsAccepted: false,
     };
 
     const branchPreview = document.getElementById('branchPreview');
     const branchMetricsContent = document.getElementById('branchMetricsContent');
-    const branchSummary = document.getElementById('branchSummary');
     const branchChart = document.getElementById('branchChart');
-    const branchScoreNote = document.getElementById('branchScoreNote');
     const finishMetricsButton = document.getElementById('finishMetricsButton');
     const metricsOverlay = document.getElementById('metricsOverlay');
     const metricsPopupContent = document.getElementById('metricsPopupContent');
     const closeMetricsButton = document.getElementById('closeMetricsButton');
-    const timerDraggable = document.getElementById('timerDraggable');
-    const discountDraggable = document.getElementById('discountDraggable');
-    const COUNTDOWN_START_SECONDS = 5 * 60;
-    let branchCountdownSeconds = COUNTDOWN_START_SECONDS;
-    let branchCountdownTimerId = null;
-    let branchCountdownFinished = false;
+    const branchDraggables = Array.from(document.querySelectorAll('[data-kind][draggable="true"]'));
+    const branchCard = document.querySelector('.branch-card');
     let selectedPlacementWidget = null;
-    let purchaseModeAutoRevertTimerId = null;
-    let purchaseModeAutoRevertConsumed = false;
 
-    function syncBranchWidgetStates(timerLabelText = 'この価格で買えるのは残り 05:00') {
-      if (timerDraggable) {
-        timerDraggable.classList.toggle('placed', branchState.timer === 'on');
-        const timerTextNode = timerDraggable.querySelector('span:nth-child(2)');
-        if (timerTextNode) {
-          timerTextNode.textContent = timerLabelText;
+    const CHECKBOX_KEYS = ['productNotice', 'premiumDelivery', 'noWrapping', 'promoEmail'];
+    const CHECKBOX_LABELS = {
+      ja: {
+        productNotice: '弊社からの製品に関するお知らせを希望しない',
+        premiumDelivery: '常に上質配送(有料)を希望する',
+        noWrapping: '常にラッピング(有料)を希望しない',
+        promoEmail: 'プロモーションメールを配信を希望する',
+      },
+      en: {
+        productNotice: 'Do not receive product updates from us',
+        premiumDelivery: 'Always choose premium delivery (paid)',
+        noWrapping: 'Do not choose wrapping (paid)',
+        promoEmail: 'Receive promotional emails',
+      },
+    };
+
+    const OPTION_IMPACTS = {
+      timer: {
+        isActive: () => branchState.timer === 'on',
+        buyers: 40,
+        profit: 6,
+        userRatingPenalty: 0.34,
+        flameRisk: 18,
+      },
+      discount: {
+        isActive: () => branchState.price === 'discount',
+        buyers: 34,
+        profit: 4,
+        userRatingPenalty: 0.22,
+        flameRisk: 13,
+      },
+      saleBadge: {
+        isActive: () => branchState.saleBadge,
+        buyers: 54,
+        profit: 7,
+        userRatingPenalty: 0.26,
+        flameRisk: 14,
+      },
+      subscriptionSwitch: {
+        isActive: () => branchState.subscriptionSwitch,
+        buyers: 26,
+        profit: 5,
+        userRatingPenalty: 0.3,
+        flameRisk: 17,
+      },
+      intrusiveAd: {
+        isActive: () => branchState.intrusiveAd,
+        buyers: 42,
+        profit: 8,
+        userRatingPenalty: 0.44,
+        flameRisk: 26,
+      },
+      terms: {
+        isActive: () => branchState.terms,
+        buyers: 12,
+        profit: 3,
+        userRatingPenalty: 0.2,
+        flameRisk: 12,
+      },
+      termsAccepted: {
+        isActive: () => branchState.termsAccepted,
+        buyers: 10,
+        profit: 2,
+        userRatingPenalty: 0.14,
+        flameRisk: 8,
+      },
+    };
+
+    const DRAGGABLE_STATE = {
+      timer: () => branchState.timer === 'on',
+      discount: () => branchState.price === 'discount',
+      saleBadge: () => branchState.saleBadge,
+      subscriptionSwitch: () => branchState.subscriptionSwitch,
+      intrusiveAd: () => branchState.intrusiveAd,
+      terms: () => branchState.terms,
+    };
+
+    const DROP_ACTIONS = {
+      timer: () => {
+        branchState.timer = 'on';
+        selectedPlacementWidget = null;
+      },
+      discount: () => {
+        branchState.price = 'discount';
+        selectedPlacementWidget = null;
+      },
+      saleBadge: () => {
+        branchState.saleBadge = true;
+        selectedPlacementWidget = null;
+      },
+      subscriptionSwitch: () => {
+        branchState.subscriptionSwitch = true;
+        selectedPlacementWidget = 'checkboxes';
+      },
+      intrusiveAd: () => {
+        branchState.intrusiveAd = true;
+        selectedPlacementWidget = 'intrusiveAd';
+      },
+      terms: () => {
+        branchState.terms = true;
+        selectedPlacementWidget = 'terms';
+      },
+    };
+
+    const WIDGET_ROLE_TO_TYPE = {
+      'timer-widget': 'timer',
+      'discount-widget': 'discount',
+      'sale-badge-widget': 'saleBadge',
+      'checkbox-widget': 'checkboxes',
+      'intrusive-ad-widget': 'intrusiveAd',
+      'terms-widget': 'terms',
+    };
+
+    function isSelectedPlacement(widgetType) {
+      return selectedPlacementWidget === widgetType;
+    }
+
+    function getSelectedPlacementClass(widgetType) {
+      return isSelectedPlacement(widgetType) ? 'selected' : '';
+    }
+
+    function renderRemovalButton(className, widgetType, ariaLabel = '削除') {
+      return isSelectedPlacement(widgetType)
+        ? `<button class="${className}" type="button" aria-label="${ariaLabel}">×</button>`
+        : '';
+    }
+
+    function attachDragStartHandler(element, dropType) {
+      if (!element) {
+        return;
+      }
+      element.addEventListener('dragstart', (event) => {
+        if (element.classList.contains('placed')) {
+          event.preventDefault();
+          return;
         }
-      }
-      if (discountDraggable) {
-        discountDraggable.classList.toggle('placed', branchState.price === 'discount');
-      }
-      const purchaseNoticeDraggable = document.getElementById('purchaseNoticeDraggable');
-      if (purchaseNoticeDraggable) {
-        purchaseNoticeDraggable.classList.toggle('placed', branchState.purchaseNotice);
-      }
-      const subscriptionSwitchDraggable = document.getElementById('subscriptionSwitchDraggable');
-      if (subscriptionSwitchDraggable) {
-        subscriptionSwitchDraggable.classList.toggle('placed', branchState.subscriptionSwitch);
-      }
-      const intrusiveAdDraggable = document.getElementById('intrusiveAdDraggable');
-      if (intrusiveAdDraggable) {
-        intrusiveAdDraggable.classList.toggle('placed', branchState.intrusiveAd);
-      }
+        event.dataTransfer.setData('text/plain', dropType);
+        event.dataTransfer.effectAllowed = 'copy';
+      });
     }
 
-    function clearPurchaseModeAutoRevertTimer() {
-      if (purchaseModeAutoRevertTimerId !== null) {
-        clearTimeout(purchaseModeAutoRevertTimerId);
-        purchaseModeAutoRevertTimerId = null;
-      }
+    function getWidgetTypeFromElement(widget) {
+      return WIDGET_ROLE_TO_TYPE[widget.dataset.role] || null;
     }
 
-    function setPurchaseMode(mode, shouldScheduleAutoRevert = false) {
-      clearPurchaseModeAutoRevertTimer();
-      branchState.subscription = mode;
-      if (mode === 'one-time' && shouldScheduleAutoRevert && !purchaseModeAutoRevertConsumed) {
-        purchaseModeAutoRevertTimerId = setTimeout(() => {
-          purchaseModeAutoRevertTimerId = null;
-          purchaseModeAutoRevertConsumed = true;
-          branchState.subscription = 'subscription';
-          renderBranchPreview();
-        }, 10000);
-      }
+    function getCheckboxLabel(key) {
+      const language = currentLanguage === 'en' ? 'en' : 'ja';
+      return CHECKBOX_LABELS[language][key] || '';
     }
 
-    function formatTodayPurchasedMessage(count) {
-      return currentLanguage === 'en'
-        ? `${count} people bought today!`
-        : `今日 ${count} 人が購入しました！`;
+    function getCheckboxCount() {
+      return CHECKBOX_KEYS.filter((key) => branchState[key]).length;
     }
 
-    function formatCountdown(seconds) {
-      const safeSeconds = Math.max(0, seconds);
-      const minutes = Math.floor(safeSeconds / 60);
-      const remainingSeconds = safeSeconds % 60;
-      return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    function getCheckboxItems() {
+      return CHECKBOX_KEYS.map((key) => ({
+        key,
+        label: getCheckboxLabel(key),
+        checked: branchState[key],
+      }));
     }
 
-    function stopBranchCountdown(reset = false, finished = false) {
-      if (branchCountdownTimerId !== null) {
-        clearInterval(branchCountdownTimerId);
-        branchCountdownTimerId = null;
+    function updateBranchSelection(type) {
+      const action = DROP_ACTIONS[type];
+      if (!action) {
+        return;
       }
-      if (reset) {
-        branchCountdownSeconds = COUNTDOWN_START_SECONDS;
+      if (DRAGGABLE_STATE[type]?.()) {
+        return;
       }
-      branchCountdownFinished = finished;
+      action();
+      renderBranchPreview();
+    }
+
+    function syncBranchWidgetStates() {
+      branchDraggables.forEach((element) => {
+        const isPlaced = DRAGGABLE_STATE[element.dataset.kind]?.() || false;
+        element.classList.toggle('placed', isPlaced);
+        element.setAttribute('aria-disabled', String(isPlaced));
+        element.draggable = !isPlaced;
+      });
     }
 
     function getStageLevel(ratio, reverse = false) {
@@ -111,43 +223,59 @@
       if (currentLanguage === 'en') {
         return { high: 'High', mid: 'Medium', low: 'Low' }[level];
       }
-      if (kind === 'trust') {
+      if (kind === 'userRating') {
         return { high: '高', mid: '中', low: '低' }[level];
       }
       return { high: '大', mid: '中', low: '小' }[level];
     }
 
+    function getFlameRiskLevel(ratio) {
+      if (ratio >= 0.6) return 'high';
+      if (ratio >= 0.28) return 'mid';
+      return 'low';
+    }
+
     function computeBranchMetrics() {
-      const implementationCount = getImplementationCount();
-      const buyers = 980
-        + (branchState.subscription === 'subscription' ? 12 : 24)
-        + (branchState.price === 'discount' ? 22 : 6)
-        + (branchState.purchaseNotice ? 70 : 0)
-        + (branchState.subscriptionSwitch ? 60 : 0)
-        + (branchState.intrusiveAd ? 48 : 0)
-        + (branchState.timer === 'on' ? 34 : 5)
-        + (branchState.subscriptionSwitch && branchState.subscription === 'one-time' ? 18 : 0);
-      const reputation = 4.3
-        - (implementationCount * 0.18)
-        - (branchState.subscriptionSwitch && branchState.subscription === 'one-time' ? 0.15 : 0)
-        - (branchState.price === 'discount' ? 0.08 : 0);
-      const trust = 86
-        - (implementationCount * 6)
-        - (branchState.subscriptionSwitch && branchState.subscription === 'one-time' ? 5 : 0)
-        - (branchState.price === 'discount' ? 4 : 0)
-        + (branchState.ad === 'distinct' ? 2 : -2);
-      const profit = 72
-        + Math.round(buyers * 0.08)
-        - (implementationCount * 2)
-        - (branchState.subscriptionSwitch && branchState.subscription === 'one-time' ? 2 : 0)
-        - (branchState.price === 'discount' ? 1 : 0)
+      const activeImpacts = getActiveOptionImpacts();
+      const impactTotals = activeImpacts.reduce((totals, impact) => ({
+        buyers: totals.buyers + impact.buyers,
+        profit: totals.profit + impact.profit,
+        userRatingPenalty: totals.userRatingPenalty + impact.userRatingPenalty,
+        flameRisk: totals.flameRisk + impact.flameRisk,
+      }), { buyers: 0, profit: 0, userRatingPenalty: 0, flameRisk: 0 });
+      const implementationCount = activeImpacts.length;
+      const checkboxCount = getCheckboxCount();
+      const baseBuyers = 980 + (branchState.ad === 'distinct' ? 12 : 0);
+      const buyers = Math.min(1380, Math.round(
+        baseBuyers
+        + impactTotals.buyers
+        + (checkboxCount * 10)
+        + (implementationCount * 8)
+      ));
+      const userRating = Math.max(1.4, Math.min(4.7, Number((
+        4.6
+        - impactTotals.userRatingPenalty
+        - (checkboxCount * 0.12)
+        - Math.max(0, implementationCount - 1) * 0.08
+      ).toFixed(1))));
+      const profit = 68
+        + Math.round(buyers * 0.055)
+        + Math.round(impactTotals.profit * 1.2)
+        + (checkboxCount * 3)
+        + implementationCount
         + (branchState.ad === 'distinct' ? 2 : 0);
+      const flameRisk = Math.min(100, Math.round(
+        8
+        + impactTotals.flameRisk
+        + (checkboxCount * 7)
+        + (implementationCount * 5)
+      ));
 
       return [
         { label: t('buyersLabel'), value: buyers, max: 1400, suffix: t('buyersSuffix'), color: '#2563eb', decimals: 0, display: 'number' },
-        { label: t('reputationLabel'), value: Number(reputation.toFixed(1)), max: 5, suffix: t('reputationSuffix'), color: '#16a34a', decimals: 1, display: 'stars' },
-        { label: t('trustLabel'), value: trust, max: 120, suffix: t('trustSuffix'), color: '#f59e0b', decimals: 0, display: 'number' },
-        { label: t('profitLabel'), value: profit, max: 220, suffix: t('profitSuffix'), color: '#8b5cf6', decimals: 0, display: 'number' },
+        { label: t('profitLabel'), value: Math.min(220, profit), max: 220, suffix: t('profitSuffix'), color: '#8b5cf6', decimals: 0, display: 'number' },
+        { label: t('userRatingLabel'), value: userRating, max: 5, suffix: t('userRatingSuffix'), color: '#f59e0b', decimals: 1, display: 'stars' },
+        { label: t('flameRisk'), value: flameRisk, max: 100, suffix: t('riskSuffix'), color: '#ef4444', decimals: 0, display: 'number' },
       ];
     }
 
@@ -156,110 +284,222 @@
     }
 
     function getResultSummary(metrics) {
-      const [buyersMetric, reputationMetric, trustMetric, profitMetric] = metrics;
-      const compositeScore = (
-        (1 - getMetricRatio(reputationMetric)) * 0.28
-        + (1 - getMetricRatio(trustMetric)) * 0.34
-        + (1 - getMetricRatio(profitMetric)) * 0.18
-        + getMetricRatio(buyersMetric) * 0.2
-      );
-      const summaries = [
-        'まだ軽い段階ですが、違和感はすでに出始めています。',
-        '短期の購入は伸びますが、信頼は目に見えて削れます。',
-        '演出が増えるほど、評価と継続率はかなり危うくなります。',
-        '強引さが前面に出て、長期のブランド価値は落ちやすいです。',
-        'ダークパターンが濃く、スコアはかなり低い状態です。',
-      ];
-      const index = Math.min(summaries.length - 1, Math.max(0, Math.floor(compositeScore * summaries.length)));
-      return summaries[index];
+      const [, profitMetric, userRatingMetric, flameRiskMetric] = metrics;
+      const profitRatio = getMetricRatio(profitMetric);
+      const userRatingRatio = getMetricRatio(userRatingMetric);
+      const flameRiskRatio = getMetricRatio(flameRiskMetric);
+      const profitText = profitRatio >= 0.82
+        ? '利益はとても大きい結果です'
+        : profitRatio >= 0.62
+          ? '利益は十分に伸びています'
+          : profitRatio >= 0.48
+            ? '利益はそこそこ出ています'
+            : '利益の伸びはまだ控えめです';
+      const ratingText = userRatingRatio >= 0.82
+        ? 'ユーザの評判は良好です'
+        : userRatingRatio >= 0.62
+          ? 'ユーザの評判には賛否があります'
+          : 'ユーザの評判は悪化しています';
+      const flameText = flameRiskRatio >= 0.68
+        ? '炎上リスクはかなり高い状態です。'
+        : flameRiskRatio >= 0.28
+          ? '炎上リスクは無視できない水準です。'
+          : '炎上リスクはまだ低めです。';
+      return `${profitText}。${ratingText}。${flameText}`;
     }
 
     function getImplementationCount() {
-      return [
-        branchState.timer === 'on',
-        branchState.price === 'discount',
-        branchState.purchaseNotice,
-        branchState.subscriptionSwitch,
-        branchState.intrusiveAd,
-        branchState.subscriptionSwitch && branchState.subscription === 'one-time',
-      ].filter(Boolean).length;
+      return getActiveOptionImpacts().length;
     }
 
-    function buildReviewEntries(metrics) {
-      const [, reputationMetric, trustMetric] = metrics;
-      const implementationCount = getImplementationCount();
-      const reputationRatio = getMetricRatio(reputationMetric);
-      const trustRatio = getMetricRatio(trustMetric);
-      const intensePattern = implementationCount >= 5 || reputationRatio < 0.35 || trustRatio < 0.4;
-      const badPattern = implementationCount >= 3 || reputationRatio < 0.62 || trustRatio < 0.66;
-      const mixedPattern = implementationCount >= 2 || reputationRatio < 0.82 || trustRatio < 0.82;
-      const language = currentLanguage === 'en' ? 'en' : 'ja';
+    function getActiveOptionImpacts() {
+      const impacts = Object.values(OPTION_IMPACTS).filter((impact) => impact.isActive());
+      const checkboxCount = getCheckboxCount();
+      if (checkboxCount > 0) {
+        impacts.push({
+          buyers: 12 * checkboxCount,
+          profit: 3 * checkboxCount,
+          userRatingPenalty: 0.14 * checkboxCount,
+          flameRisk: 8 * checkboxCount,
+        });
+      }
+      return impacts;
+    }
 
-      const reviewPools = {
+    function resetBranchState() {
+      branchState.price = 'original';
+      branchState.ad = 'distinct';
+      branchState.timer = 'off';
+      branchState.emphasis = 'none';
+      branchState.saleBadge = false;
+      branchState.subscriptionSwitch = false;
+      branchState.intrusiveAd = false;
+      branchState.terms = false;
+      branchState.termsAccepted = false;
+      CHECKBOX_KEYS.forEach((key) => {
+        branchState[key] = false;
+      });
+      selectedPlacementWidget = null;
+      renderBranchPreview();
+    }
+
+    function setupResetButton() {
+      if (!branchCard || branchCard.querySelector('[data-branch-reset]')) {
+        return;
+      }
+      const resetButton = document.createElement('button');
+      resetButton.type = 'button';
+      resetButton.className = 'branch-reset-button';
+      resetButton.dataset.branchReset = 'true';
+      resetButton.textContent = 'リセット';
+      resetButton.addEventListener('click', resetBranchState);
+      branchCard.appendChild(resetButton);
+    }
+
+    function buildReviewEntries() {
+      const language = currentLanguage === 'en' ? 'en' : 'ja';
+      const reviews = [];
+      const copy = {
         ja: {
-          excellent: [
-            { stars: 5, title: '梱包も丁寧で安心でした', body: '説明どおりの商品で、届くまでの流れも分かりやすかったです。定期便の案内も明確で、気持ちよく買い物できました。', author: '購入者', date: '2026/07/20' },
-            { stars: 5, title: '想像以上に満足', body: '値段に対して内容がしっかりしていて、無駄な押し売り感もありませんでした。家族にも勧めやすいです。', author: '購入者', date: '2026/07/19' },
-            { stars: 5, title: '見やすくて買いやすい', body: '注文画面がシンプルで、必要な情報だけが自然にまとまっていました。初めてでも迷わず購入できました。', author: '購入者', date: '2026/07/18' },
-            { stars: 5, title: 'また買いたいです', body: '発送も早く、問い合わせへの返答も丁寧でした。余計な表示が少なく、安心感のあるショップだと思います。', author: '購入者', date: '2026/07/17' },
-            { stars: 5, title: '期待以上でした', body: '商品の品質だけでなく、表示や案内も誠実で好印象でした。友人にもすすめたいと思える内容です。', author: '購入者', date: '2026/07/16' },
+          author: '購入者',
+          activeSize: [
+            ['想像より小さかった', '35Lの超巨大という見出しを見て大きめを期待しましたが、届いたら普通に小型でした。置き場所には困らないものの、家族用には物足りません。'],
+            ['写真より控えめなサイズ感', '商品名の勢いで選びましたが、実物は一人暮らし向けという印象です。サイズ表をよく見ればよかったです。'],
           ],
-          mixed: [
-            { stars: 4, title: '商品は良いが少し気になる', body: '使い心地は満足ですが、案内がやや強めに感じる部分がありました。もう少し落ち着いた表示だとさらに良いです。', author: '購入者', date: '2026/07/20' },
-            { stars: 4, title: '概ね満足', body: '届いた商品には満足しています。定期便の説明がもう少し分かりやすければ、もっと安心して買えたと思います。', author: '購入者', date: '2026/07/19' },
-            { stars: 3, title: '便利だけど少し不安', body: '内容は悪くないのですが、急かされるような表示が多くて落ち着いて選べませんでした。購入前の確認は必須です。', author: '購入者', date: '2026/07/18' },
-            { stars: 4, title: '価格と品質は悪くない', body: '商品そのものは良かったです。ただ、見せ方が少し強いので、人によっては警戒するかもしれません。', author: '購入者', date: '2026/07/17' },
-            { stars: 3, title: '表示がやや分かりづらい', body: '届いたあとに確認したら、思っていたより説明が細かくて少し戸惑いました。購入前にしっかり読んだ方がいいです。', author: '購入者', date: '2026/07/16' },
+          inactiveSize: [
+            ['小さい分安くて良い', '大きすぎない冷蔵庫を探していたので、サイズと価格のバランスはちょうどよかったです。サブ用として使いやすいです。'],
+            ['コンパクトで扱いやすい', '小さい分だけ設置しやすく、値段も抑えられていて納得感があります。必要最低限で十分な人には合うと思います。'],
           ],
-          bad: [
-            { stars: 2, title: '定期便の表示が分かりにくい', body: '一回だけ買うつもりでしたが、あとから定期便だと気づいて驚きました。注文前にもっと分かりやすくしてほしいです。', author: '購入者', date: '2026/07/20' },
-            { stars: 1, title: '騙された気分です', body: '購入ボタンばかり目立っていて、定期便の説明を見落としました。解約の導線も分かりづらく、かなり不満です。', author: '購入者', date: '2026/07/19' },
-            { stars: 2, title: '強引な見せ方が気になる', body: 'レビュー風の表示で安心したのに、実際は案内が多くて混乱しました。普通の買い物のつもりだったので残念です。', author: '購入者', date: '2026/07/18' },
-            { stars: 1, title: '勝手に定期便になっていた', body: '注文後に明細を見て気づきました。定期便の説明が目立たず、解約方法も分かりにくいのでおすすめできません。', author: '購入者', date: '2026/07/17' },
-            { stars: 2, title: 'クレームを入れたいレベル', body: '表示が紛らわしく、購入したのに安心できませんでした。問い合わせても分かりにくく、かなりストレスが残りました。', author: '購入者', date: '2026/07/16' },
+          activeDiscountSale: [
+            ['割引表示が疑わしい', 'あたかも割引しているように見えますが、本当に値下げされているのかは少し疑わしいです。お得感の見せ方が強すぎます。'],
+            ['元からこの値段では？', 'SALE表示に惹かれましたが、調べてみると元からこの値段だったようにも見えます。急いで買う必要はなかったかもしれません。'],
+            ['画面がうるさくて見づらい', 'SALEの文字が多く、価格や商品説明より先に派手な表示ばかり目に入ります。落ち着いて比較しにくい画面でした。'],
           ],
-          critical: [
-            { stars: 1, title: '完全に騙された', body: '普通の買い切りだと思って注文したら、実際は定期便でした。説明が見つけにくく、かなり悪質だと感じました。', author: '購入者', date: '2026/07/20' },
-            { stars: 1, title: '解約が面倒すぎる', body: '勝手に定期便に入れられたように感じます。解約ページも分かりにくく、買い物としては最悪でした。', author: '購入者', date: '2026/07/19' },
-            { stars: 1, title: '二度と買いません', body: '星1も付けたくないです。購入前の表示が分かりづらく、問い合わせてもたらい回しで不快でした。', author: '購入者', date: '2026/07/18' },
-            { stars: 1, title: 'だまし要素が多すぎる', body: 'タイマーやおすすめ表示で急かされ、内容を冷静に確認できませんでした。届いてから後悔する典型例です。', author: '購入者', date: '2026/07/17' },
-            { stars: 1, title: 'クレーム案件です', body: '定期便の有無が分かりにくく、返品や解約の説明も不親切でした。こんな売り方は信頼できません。', author: '購入者', date: '2026/07/16' },
+          activeDiscount: [
+            ['値引きの根拠が分かりにくい', '割引バッジは目立ちますが、元の価格や比較条件が見えづらく、本当に安いのか判断しにくかったです。'],
+            ['お得そうだが少し不安', '安く見えるのは良いものの、表示の作り方が強くて、あとから別の条件が出てこないか気になりました。'],
+          ],
+          activeSale: [
+            ['SALE表示が主張しすぎ', '商品よりもSALEの文字が目立っていて、ページ全体が少し騒がしいです。もう少し静かな表示の方が買いやすいです。'],
+            ['情報が頭に入ってこない', 'バナーが派手で、肝心のサイズや機能を読む前に気が散りました。何を確認すればいいのか分かりにくかったです。'],
+          ],
+          inactiveDiscountSale: [
+            ['見やすくて比較しやすい', '余計な割引演出がないので、価格と商品の特徴をそのまま確認できました。落ち着いて判断しやすいです。'],
+            ['表示がすっきりしている', '画面が見やすく、価格も分かりやすいです。派手な売り文句が少ないので安心して読めました。'],
+          ],
+          activeOptions: [
+            ['メールが多すぎる', '購入後のお知らせメールが想像以上に多く、必要な連絡まで埋もれてしまいました。チェック欄をもっと分かりやすくしてほしいです。'],
+            ['有料オプションを見落とした', '有料のラッピングや配送に関する項目を見落として損した気分です。最終金額の変化をもっと目立たせてほしいです。'],
+            ['チェック項目が紛らわしい', '希望する/しないの表現が混ざっていて、どれを選んだ状態なのか分かりにくかったです。注文前に何度も確認しました。'],
+          ],
+          inactiveOptions: [
+            ['追加項目が少なくて安心', '余計なチェック項目が出てこないので、必要な内容だけ確認して購入できました。手続きがすっきりしています。'],
+          ],
+          activeAd: [
+            ['広告が邪魔でした', '商品を見ている途中で大きな案内が入り、買い物の流れが止まりました。特別感よりも煩わしさが勝ちました。'],
+          ],
+          activeTerms: [
+            ['条件を探しにくい', '規約自体は読めますが、文章量が多くて重要な条件を探すのに時間がかかりました。要点を別にまとめてほしいです。'],
           ],
         },
         en: {
-          excellent: [
-            { stars: 5, title: 'Careful packaging and reassuring', body: 'The product matched the description, and the whole flow was easy to understand. The subscription notice was clear, so I could buy with confidence.', author: 'Buyer', date: '2026/07/20' },
-            { stars: 5, title: 'Better than expected', body: 'The value for the price is solid, and there was no pushy sales pressure. It is easy to recommend to family and friends.', author: 'Buyer', date: '2026/07/19' },
-            { stars: 5, title: 'Easy to order', body: 'The checkout page was simple and the important details were arranged naturally. Even first-time buyers would not get lost.', author: 'Buyer', date: '2026/07/18' },
-            { stars: 5, title: 'Would buy again', body: 'Shipping was fast and support was polite. The page avoided unnecessary clutter, which made the store feel trustworthy.', author: 'Buyer', date: '2026/07/17' },
-            { stars: 5, title: 'Excellent overall', body: 'Not only the product, but the labeling and guidance felt honest. This is the kind of shop I would return to.', author: 'Buyer', date: '2026/07/16' },
+          author: 'Buyer',
+          activeSize: [
+            ['Smaller than expected', 'The headline made it sound much larger, but the actual unit feels compact. It is fine for a small room, not for a family.'],
+            ['The size felt overstated', 'I expected more capacity from the product name. The item itself works, but the wording made my expectations too high.'],
           ],
-          mixed: [
-            { stars: 4, title: 'Good product, a bit noisy', body: 'I am happy with the item itself, but a few messages felt a little too strong. A calmer presentation would make it better.', author: 'Buyer', date: '2026/07/20' },
-            { stars: 4, title: 'Mostly satisfied', body: 'The product arrived as expected. The subscription details could be clearer, which would make the purchase feel safer.', author: 'Buyer', date: '2026/07/19' },
-            { stars: 3, title: 'Useful, but slightly uneasy', body: 'The content is not bad, but there were many rush cues that made it hard to compare calmly. I would double-check before ordering.', author: 'Buyer', date: '2026/07/18' },
-            { stars: 4, title: 'Price and quality are fine', body: 'The product itself is good. The presentation is a bit aggressive, so some shoppers may hesitate.', author: 'Buyer', date: '2026/07/17' },
-            { stars: 3, title: 'The labeling was unclear', body: 'After checking the order, I realized the details were more complicated than I thought. Read everything carefully before purchasing.', author: 'Buyer', date: '2026/07/16' },
+          inactiveSize: [
+            ['Small, affordable, and useful', 'The compact size keeps the price reasonable. It works well as a secondary fridge or for a small apartment.'],
+            ['Easy to place anywhere', 'It is not oversized, which made installation simple. The price feels fair for the capacity.'],
           ],
-          bad: [
-            { stars: 2, title: 'Subscription details were hard to spot', body: 'I only wanted a one-time purchase, but later found out it was a subscription. The disclosure should be much clearer.', author: 'Buyer', date: '2026/07/20' },
-            { stars: 1, title: 'Felt misleading', body: 'Only the buy button stood out, while the subscription explanation was easy to miss. Canceling was also hard to find.', author: 'Buyer', date: '2026/07/19' },
-            { stars: 2, title: 'Too pushy for my taste', body: 'The review-style display made the store look reassuring, but the actual checkout felt confusing. I expected a normal purchase.', author: 'Buyer', date: '2026/07/18' },
-            { stars: 1, title: 'It turned into a subscription', body: 'I noticed from the receipt that it was a subscription. The cancellation steps were not obvious, so I cannot recommend it.', author: 'Buyer', date: '2026/07/17' },
-            { stars: 2, title: 'Worth a complaint', body: 'The labeling was confusing, and I did not feel safe after ordering. Support did not make things clearer either.', author: 'Buyer', date: '2026/07/16' },
+          activeDiscountSale: [
+            ['The discount looks suspicious', 'It looks discounted, but I could not tell whether the price was actually reduced. The deal framing felt overdone.'],
+            ['Was this always the price?', 'The sale sign caught my eye, but it felt like the item may have been this price from the start.'],
+            ['The page is too noisy', 'The sale text dominates the page and makes the details harder to read. It is difficult to compare calmly.'],
           ],
-          critical: [
-            { stars: 1, title: 'Completely misleading', body: 'I thought I was buying a regular item, but it turned out to be a subscription. The explanation was hidden too well.', author: 'Buyer', date: '2026/07/20' },
-            { stars: 1, title: 'Canceling was a hassle', body: 'It felt like I was signed up for a subscription by default. The cancellation page was hard to find and the experience was awful.', author: 'Buyer', date: '2026/07/19' },
-            { stars: 1, title: 'Never again', body: 'I would not even give this one star. The purchase screen was misleading and support bounced me around.', author: 'Buyer', date: '2026/07/18' },
-            { stars: 1, title: 'Too many dark patterns', body: 'Timer pressure and recommendation labels pushed me too hard. I could not calmly review the terms and regretted ordering.', author: 'Buyer', date: '2026/07/17' },
-            { stars: 1, title: 'A real complaint case', body: 'The subscription terms and cancellation info were not clear at all. This kind of sales tactic destroys trust.', author: 'Buyer', date: '2026/07/16' },
+          activeDiscount: [
+            ['Unclear discount basis', 'The discount badge stands out, but the original price and comparison basis are hard to verify.'],
+            ['Looks cheap, but uncertain', 'The price looks appealing, yet the presentation made me wonder if there were hidden catches.'],
+          ],
+          activeSale: [
+            ['Too much sale noise', 'The sale banner gets more attention than the product details. A calmer page would be easier to trust.'],
+            ['Hard to focus on details', 'The banner is loud enough that I had to reread the product information several times.'],
+          ],
+          inactiveDiscountSale: [
+            ['Clean and easy to read', 'Without extra sale effects, the price and product details are easy to compare.'],
+            ['The page feels straightforward', 'The display is simple and readable, which makes the purchase feel more comfortable.'],
+          ],
+          activeOptions: [
+            ['Too many emails', 'After ordering, the amount of promotional email felt excessive. The checkbox wording should be clearer.'],
+            ['Missed a paid add-on', 'I missed a paid wrapping or delivery-related option and felt like I paid more than expected.'],
+            ['Confusing checkboxes', 'The wording mixes opt-in and opt-out language, so I had to reread the selections several times.'],
+          ],
+          inactiveOptions: [
+            ['Fewer add-ons felt safer', 'There were not many extra checkbox choices, so checkout felt simple and predictable.'],
+          ],
+          activeAd: [
+            ['The ad interrupted shopping', 'A large offer interrupted the flow while I was checking the product. It felt more annoying than helpful.'],
+          ],
+          activeTerms: [
+            ['Hard to find key terms', 'The terms are available, but important conditions are buried in a lot of text. A short summary would help.'],
           ],
         },
       };
+      const reviewCopy = copy[language];
+      const dates = ['2026/07/20', '2026/07/19', '2026/07/18', '2026/07/17', '2026/07/16'];
+      const add = (stars, pair) => {
+        reviews.push({
+          stars,
+          title: pair[0],
+          body: pair[1],
+          author: reviewCopy.author,
+          date: dates[reviews.length % dates.length],
+        });
+      };
+      const addMany = (stars, list) => {
+        list.forEach((pair) => add(stars, pair));
+      };
 
-      const tier = intensePattern ? 'critical' : (badPattern ? 'bad' : (mixedPattern ? 'mixed' : 'excellent'));
-      return reviewPools[language][tier].slice(0, 5);
+      if (branchState.timer === 'on') {
+        addMany(2, reviewCopy.activeSize);
+      } else {
+        addMany(5, reviewCopy.inactiveSize);
+      }
+
+      if (branchState.price === 'discount' && branchState.saleBadge) {
+        addMany(2, reviewCopy.activeDiscountSale);
+      } else if (branchState.price === 'discount') {
+        addMany(3, reviewCopy.activeDiscount);
+      } else if (branchState.saleBadge) {
+        addMany(2, reviewCopy.activeSale);
+      } else {
+        addMany(5, reviewCopy.inactiveDiscountSale);
+      }
+
+      if (branchState.subscriptionSwitch) {
+        addMany(2, reviewCopy.activeOptions);
+      } else {
+        addMany(5, reviewCopy.inactiveOptions);
+      }
+
+      if (branchState.intrusiveAd) {
+        addMany(2, reviewCopy.activeAd);
+      }
+      if (branchState.terms) {
+        addMany(3, reviewCopy.activeTerms);
+      }
+
+      if (branchState.subscriptionSwitch) {
+        const optionTitles = new Set(reviewCopy.activeOptions.map((pair) => pair[0]));
+        const optionReviews = reviews.filter((review) => optionTitles.has(review.title));
+        const otherReviews = reviews.filter((review) => !optionTitles.has(review.title));
+        return [
+          ...otherReviews.slice(0, 3),
+          ...optionReviews.slice(0, 2),
+        ].slice(0, 5);
+      }
+
+      return reviews.slice(0, 5);
     }
 
     function formatMetricValue(value, decimals = 0) {
@@ -309,7 +549,7 @@
         });
       });
 
-      root.querySelectorAll('[data-trust-pie]').forEach((node) => {
+      root.querySelectorAll('[data-flame-risk-pie]').forEach((node) => {
         const targetProgress = Number(node.dataset.targetProgress || '0');
         requestAnimationFrame(() => {
           node.style.setProperty('--result-pie-progress', `${targetProgress}%`);
@@ -318,40 +558,40 @@
     }
 
     function buildPredictionItems(metrics) {
-      const [buyersMetric, reputationMetric, trustMetric, profitMetric] = metrics;
+      const [buyersMetric, profitMetric, userRatingMetric, flameRiskMetric] = metrics;
       const buyersLevel = getStageLevel(buyersMetric.value / buyersMetric.max);
-      const flameLevel = getStageLevel((120 - trustMetric.value) / 120, true);
-      const trustLevel = getStageLevel(trustMetric.value / trustMetric.max);
       const profitLevel = getStageLevel(profitMetric.value / profitMetric.max);
+      const userRatingLevel = getStageLevel(userRatingMetric.value / userRatingMetric.max);
+      const flameLevel = getFlameRiskLevel(flameRiskMetric.value / flameRiskMetric.max);
 
       return [
-        { label: t('buyersForecast'), stage: getStageWord('generic', buyersLevel), level: buyersLevel },
-        { label: t('flameForecast'), stage: getStageWord('generic', flameLevel), level: flameLevel },
-        { label: t('trustForecast'), stage: getStageWord('trust', trustLevel), level: trustLevel },
-        { label: t('profitForecast'), stage: getStageWord('generic', profitLevel), level: profitLevel },
+        { label: t('buyersForecast'), stage: getStageWord('generic', buyersLevel), level: buyersLevel, direction: 'positive' },
+        { label: t('profitForecast'), stage: getStageWord('generic', profitLevel), level: profitLevel, direction: 'positive' },
+        { label: t('userRatingForecast'), stage: getStageWord('userRating', userRatingLevel), level: userRatingLevel, direction: 'positive' },
+        { label: t('flameForecast'), stage: getStageWord('generic', flameLevel), level: flameLevel, direction: 'negative' },
       ];
     }
 
     function renderBranchMetricPanels() {
       const metrics = computeBranchMetrics();
-      const [buyersMetric, reputationMetric, trustMetric, profitMetric] = metrics;
+      const [buyersMetric, profitMetric, userRatingMetric, flameRiskMetric] = metrics;
       const predictionItems = buildPredictionItems(metrics);
       const reviewItems = buildReviewEntries(metrics);
       const predictionMarkup = `
         <div class="prediction-grid">
           ${predictionItems.map((item) => `
-            <div class="prediction-item ${item.level}">
+            <div class="prediction-item ${item.direction}-${item.level}">
               <div>
                 <div class="prediction-label">${item.label}</div>
               </div>
-              <span class="prediction-pill ${item.level}">${item.stage}</span>
+              <span class="prediction-pill ${item.direction}-${item.level}">${item.stage}</span>
             </div>
           `).join('')}
         </div>
       `;
       const summaryText = getResultSummary(metrics);
-      const reputationPercent = Math.max(0, Math.min(100, Math.round(getMetricRatio(reputationMetric) * 100)));
-      const trustPercent = Math.max(0, Math.min(100, Math.round(getMetricRatio(trustMetric) * 100)));
+      const userRatingPercent = Math.max(0, Math.min(100, Math.round(getMetricRatio(userRatingMetric) * 100)));
+      const flameRiskPercent = Math.max(0, Math.min(100, Math.round(getMetricRatio(flameRiskMetric) * 100)));
 
       const resultMarkup = `
         <div class="result-layout">
@@ -360,62 +600,52 @@
             <div class="result-summary-text">${summaryText}</div>
           </div>
           <div class="result-grid">
-            <div class="result-column">
-              <div class="result-bars-row">
-                <section class="result-card result-bar-card">
-                  <div class="result-card-head">
-                    <h4>${buyersMetric.label}</h4>
-                    <div class="result-card-sub">棒グラフ</div>
-                  </div>
-                  <div class="result-bar-wrap">
-                    <div class="result-bar">
-                      <div class="result-bar-fill buyers" data-result-bar-fill data-target-scale="${getMetricRatio(buyersMetric)}"></div>
-                    </div>
-                    <div class="result-bar-value" data-animate-number data-target-value="${buyersMetric.value}" data-decimals="${buyersMetric.decimals}" data-suffix="${buyersMetric.suffix}">0${buyersMetric.suffix}</div>
-                  </div>
-                </section>
-                <section class="result-card result-bar-card">
-                  <div class="result-card-head">
-                    <h4>${profitMetric.label}</h4>
-                    <div class="result-card-sub">棒グラフ</div>
-                  </div>
-                  <div class="result-bar-wrap">
-                    <div class="result-bar">
-                      <div class="result-bar-fill profit" data-result-bar-fill data-target-scale="${getMetricRatio(profitMetric)}"></div>
-                    </div>
-                    <div class="result-bar-value" data-animate-number data-target-value="${profitMetric.value}" data-decimals="${profitMetric.decimals}" data-suffix="${profitMetric.suffix}">0${profitMetric.suffix}</div>
-                  </div>
-                </section>
+            <section class="result-card result-bar-card">
+              <div class="result-card-head">
+                <h4>${buyersMetric.label}</h4>
               </div>
-            </div>
-            <div class="result-column">
-              <section class="result-card">
-                <div class="result-card-head">
-                  <h4>${reputationMetric.label}</h4>
-                  <div class="result-card-sub">星のみ</div>
+              <div class="result-bar-wrap">
+                <div class="result-bar buyers">
+                  <div class="result-bar-fill buyers" data-result-bar-fill data-target-scale="${getMetricRatio(buyersMetric)}"></div>
                 </div>
-                <div class="result-stars-wrap">
-                  <div class="result-stars" aria-label="${reputationMetric.label} ${reputationMetric.value.toFixed(reputationMetric.decimals)}${reputationMetric.suffix}">
-                    <span class="result-stars-base">★★★★★</span>
-                    <span class="result-stars-fill" data-rating-fill data-target-width="${reputationPercent}" style="width: 0%">★★★★★</span>
+                <div class="result-bar-value" data-animate-number data-target-value="${buyersMetric.value}" data-decimals="${buyersMetric.decimals}" data-suffix="${buyersMetric.suffix}">0${buyersMetric.suffix}</div>
+              </div>
+            </section>
+            <section class="result-card result-bar-card">
+              <div class="result-card-head">
+                <h4>${profitMetric.label}</h4>
+              </div>
+              <div class="result-bar-wrap">
+                <div class="result-bar profit">
+                  <div class="result-bar-fill profit" data-result-bar-fill data-target-scale="${getMetricRatio(profitMetric)}"></div>
+                </div>
+                <div class="result-bar-value" data-animate-number data-target-value="${profitMetric.value}" data-decimals="${profitMetric.decimals}" data-suffix="${profitMetric.suffix}">0${profitMetric.suffix}</div>
+              </div>
+            </section>
+            <section class="result-card">
+              <div class="result-card-head">
+                <h4>${userRatingMetric.label}</h4>
+              </div>
+              <div class="result-stars-wrap">
+                <div class="result-stars" aria-label="${userRatingMetric.label} ${userRatingMetric.value.toFixed(userRatingMetric.decimals)}${userRatingMetric.suffix}">
+                  <span class="result-stars-base">★★★★★</span>
+                  <span class="result-stars-fill" data-rating-fill data-target-width="${userRatingPercent}" style="width: 0%">★★★★★</span>
+                </div>
+              </div>
+            </section>
+            <section class="result-card">
+              <div class="result-card-head">
+                <h4>${flameRiskMetric.label}</h4>
+              </div>
+              <div class="result-flame-risk-wrap">
+                <div class="result-pie result-pie-risk" data-flame-risk-pie data-target-progress="${flameRiskPercent}" style="--result-pie-progress: 0%">
+                  <div class="result-pie-center">
+                    <div class="result-pie-value" data-animate-number data-target-value="${flameRiskMetric.value}" data-decimals="${flameRiskMetric.decimals}" data-suffix="${flameRiskMetric.suffix}">0${flameRiskMetric.suffix}</div>
+                    <div class="result-pie-label">${flameRiskMetric.label}</div>
                   </div>
                 </div>
-              </section>
-              <section class="result-card">
-                <div class="result-card-head">
-                  <h4>${trustMetric.label}</h4>
-                  <div class="result-card-sub">円グラフ</div>
-                </div>
-                <div class="result-trust-wrap">
-                  <div class="result-pie" data-trust-pie data-target-progress="${trustPercent}" style="--result-pie-progress: 0%">
-                    <div class="result-pie-center">
-                      <div class="result-pie-value" data-animate-number data-target-value="${trustMetric.value}" data-decimals="${trustMetric.decimals}" data-suffix="${trustMetric.suffix}">0${trustMetric.suffix}</div>
-                      <div class="result-pie-label">${trustMetric.label}</div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </div>
+              </div>
+            </section>
           </div>
         </div>
         <section class="result-card result-review-card">
@@ -448,109 +678,70 @@
     }
 
     function renderBranchPreview() {
-      const subscriptionVariant = branchState.subscription === 'subscription' ? 'subscription' : 'one-time';
-      const subscriptionTextMarkup = branchState.subscription === 'subscription'
-        ? '⚠︎ 月1回の定期便です / 毎月15日に引き落とし'
-        : '一回限りの購入';
-      const timerText = branchState.timer === 'on'
-        ? formatCountdown(branchCountdownSeconds)
-        : '';
+      const checkboxItems = getCheckboxItems();
 
-      if (branchState.timer === 'on') {
-        if (branchCountdownTimerId === null && !branchCountdownFinished) {
-          branchCountdownTimerId = setInterval(() => {
-            if (branchState.timer !== 'on') {
-              stopBranchCountdown(true);
-              renderBranchPreview();
-              return;
-            }
-            if (branchCountdownSeconds > 0) {
-              branchCountdownSeconds -= 1;
-            }
-            if (branchCountdownSeconds === 0) {
-              stopBranchCountdown(false, true);
-            }
-            renderBranchPreview();
-          }, 1000);
-        }
-      } else {
-        stopBranchCountdown(true, false);
-      }
-
-      const subscriptionMarkup = branchState.subscriptionSwitch ? `
-        <div class="subscription-widget-shell ${selectedPlacementWidget === 'subscription' ? 'selected' : ''}" data-role="subscription-widget">
-          <button type="button" class="subscription-callout ${subscriptionVariant}" aria-label="定期便の表示を切り替える">
-            <span class="subscription-change-mark">⇄</span>
-            <span class="subscription-callout-text">${subscriptionTextMarkup}</span>
-          </button>
-          ${selectedPlacementWidget === 'subscription' ? '<button class="subscription-remove" type="button" aria-label="削除">×</button>' : ''}
+      const checkboxMarkup = branchState.subscriptionSwitch ? `
+        <div class="subscription-widget-shell ${getSelectedPlacementClass('checkboxes')}" data-role="checkbox-widget">
+          <div class="consent-checklist-items">
+            ${checkboxItems.map((item) => `
+              <label class="consent-checkbox-item ${item.checked ? 'checked' : ''}">
+                <input type="checkbox" data-consent-key="${item.key}" ${item.checked ? 'checked' : ''} />
+                <span>${item.label}</span>
+              </label>
+            `).join('')}
+          </div>
+          ${renderRemovalButton('subscription-remove', 'checkboxes')}
         </div>
       ` : '';
-      const purchaseModeMarkup = branchState.subscriptionSwitch ? `
-        <div class="purchase-mode-switch" role="group" aria-label="購入方法の切り替え">
-          <button type="button" class="purchase-mode-button ${branchState.subscription === 'subscription' ? 'active' : ''}" data-purchase-mode="subscription">
-            <span class="purchase-mode-dot">◎</span>
-            <span>${t('purchaseModeSubscription')}</span>
-          </button>
-          <button type="button" class="purchase-mode-button ${branchState.subscription === 'one-time' ? 'active' : ''}" data-purchase-mode="one-time">
-            <span class="purchase-mode-dot">◎</span>
-            <span>${t('purchaseModeOneTime')}</span>
-          </button>
-        </div>
-        <div class="purchase-mode-note ${branchState.subscription === 'one-time' ? 'visible' : ''}">
-          ${branchState.subscription === 'one-time' && !purchaseModeAutoRevertConsumed ? t('purchaseModeAutoRevert') : '&nbsp;'}
+      const termsMarkup = branchState.terms ? `
+        <div class="terms-widget-shell ${getSelectedPlacementClass('terms')}" data-role="terms-widget">
+          <div class="terms-widget-title">利用規約</div>
+          <iframe class="terms-frame" src="../terms.txt" title="利用規約"></iframe>
+          <label class="terms-agree-row ${branchState.termsAccepted ? 'checked' : ''}">
+            <input type="checkbox" data-terms-agree ${branchState.termsAccepted ? 'checked' : ''} />
+            <span>同意します</span>
+          </label>
+          ${renderRemovalButton('terms-remove', 'terms')}
         </div>
       ` : '';
-      const todayPurchasedCount = 108
-        + (branchState.purchaseNotice ? 58 : 0)
-        + (branchState.subscriptionSwitch ? 42 : 0)
-        + (branchState.subscriptionSwitch && branchState.subscription === 'one-time' ? 16 : 0)
-        + (branchState.intrusiveAd ? 30 : 0)
-        + (branchState.price === 'discount' ? 10 : 0)
-        + (branchState.timer === 'on' ? 8 : 0);
-      const socialProofMarkup = branchState.purchaseNotice ? `
-        <div class="social-proof-popup" aria-label="購入者数の通知">
-          <div class="social-proof-badge">${t('socialProofBadge')}</div>
-          <div class="social-proof-text">${formatTodayPurchasedMessage(todayPurchasedCount)}</div>
-          <div class="social-proof-subtext">${t('socialProofSubtext')}</div>
-          ${selectedPlacementWidget === 'purchaseNotice' ? '<button class="social-proof-remove" type="button" aria-label="削除">×</button>' : ''}
+      const saleBadgeMarkup = branchState.saleBadge ? `
+        <div class="sale-badge sale-marquee ${getSelectedPlacementClass('saleBadge')}" data-role="sale-badge-widget">
+          <p><span>SALE! SALE! SALE! SALE! SALE! SALE!</span><span aria-hidden="true">SALE! SALE! SALE! SALE! SALE! SALE!</span></p> 
+          ${renderRemovalButton('sale-badge-remove', 'saleBadge')}
         </div>
       ` : '';
       const adBannerMarkup = branchState.intrusiveAd ? `
-        <div class="intrusive-ad-banner ${selectedPlacementWidget === 'intrusiveAd' ? 'selected' : ''}">
+        <div class="intrusive-ad-banner ${getSelectedPlacementClass('intrusiveAd')}" data-role="intrusive-ad-widget">
           <div class="intrusive-ad-label">${t('intrusiveAdLabel')}</div>
           <div class="intrusive-ad-copy">${t('intrusiveAdCopy')}</div>
           <div class="intrusive-ad-note">${t('intrusiveAdNote')}</div>
-          ${selectedPlacementWidget === 'intrusiveAd' ? '<button class="intrusive-ad-remove" type="button" aria-label="削除">×</button>' : ''}
+          ${renderRemovalButton('intrusive-ad-remove', 'intrusiveAd')}
         </div>
       ` : '';
-      const timerInlineLabel = `この価格で買えるのは残り ${timerText || '05:00'}`;
-      const timerInlineMarkup = branchState.timer === 'on'
-        ? `<span class="timer-inline ${selectedPlacementWidget === 'timer' ? 'selected' : ''}" data-role="timer-widget">
-            <span>⏱</span>
-            <span>${timerInlineLabel}</span>
-            ${selectedPlacementWidget === 'timer' ? '<button class="timer-remove" type="button" aria-label="削除">×</button>' : ''}
-          </span>`
-        : '';
+      const exaggeratedTitleText = branchState.timer === 'on' ? '35Lの超巨大冷蔵庫!!' : t('productName');
+      const productTitleMarkup = branchState.timer === 'on'
+        ? `<div class="product-title-wrap ${getSelectedPlacementClass('timer')}" data-role="timer-widget">
+            <div class="campaign-label">業界No.1シェア突破記念キャンペーン中</div>
+            <h3 class="product-title">${exaggeratedTitleText}</h3>
+            ${renderRemovalButton('timer-remove', 'timer')}
+          </div>`
+        : `<h3 class="product-title">${exaggeratedTitleText}</h3>`;
       const discountInlineMarkup = branchState.price === 'discount'
-        ? `<div class="promo-badge discount-inline ${selectedPlacementWidget === 'discount' ? 'selected' : ''}" data-role="discount-widget">
-            <span>🏷</span>
-            <span>${t('discountBadge')}</span>
-            ${selectedPlacementWidget === 'discount' ? '<button type="button" class="discount-remove" aria-label="削除">×</button>' : ''}
+        ? `<div class="promo-badge discount-inline ${getSelectedPlacementClass('discount')}" data-role="discount-widget">
+            <img src="../assets/images/discount.png"  height="100" alt="割引バッジ" />
+            ${renderRemovalButton('discount-remove', 'discount')}
           </div>`
         : '';
 
       branchPreview.innerHTML = `
         <div class = "ec-inner-page">
-          ${socialProofMarkup}
-
           <div class="ec-header">
             <h1>${t('storeName')}</h1>
           </div>  
-
+          ${saleBadgeMarkup}
           <div class="product-card">
             <div class="product-text">
-              <h3>${t('productName')}</h3>
+              ${productTitleMarkup}
               <div class="product-features">
                 <div class="feature-item">${t('feature1')}</div>
                 <div class="feature-item">${t('feature2')}</div>
@@ -558,59 +749,28 @@
                 <div class="feature-item">${t('feature4')}</div>
               </div>
             </div>
-            <img src="../assets/images/fridge.png" width="50%" height="50%" alt="${t('productName')}" />
+            <img src="../assets/images/fridge.png" width="40%" height="40%" style="margin: 50px 0px 50px 0px;" alt="${t('productName')}" />
           </div>
 
-          <div class="price-row">
-            <span class="price-main">${t('normalPrice')}</span>
-            ${branchState.price === 'discount' ? `<span class="price-original">${t('originalPrice')}</span>` : ''}
+          <div class="price-section">
             ${discountInlineMarkup}
-            ${timerInlineMarkup}
+            <p class="price-main">${t('normalPrice')}</p>
           </div>
           ${adBannerMarkup}
-          ${purchaseModeMarkup}
-          ${subscriptionMarkup}
           <div class="promo-badges"></div>
-          <button>${t('purchaseButton')}</button>
+          <button class="purchaseButton">${t('purchaseButton')}</button>
+          ${checkboxMarkup}
+          ${termsMarkup}
         </div>
       `;
 
-      syncBranchWidgetStates(timerInlineLabel);
+      syncBranchWidgetStates();
+      renderBranchMetricPanels();
     }
 
-    if (timerDraggable) {
-      timerDraggable.addEventListener('dragstart', (event) => {
-        event.dataTransfer.setData('text/plain', 'timer');
-        event.dataTransfer.effectAllowed = 'copy';
-      });
-    }
-    if (discountDraggable) {
-      discountDraggable.addEventListener('dragstart', (event) => {
-        event.dataTransfer.setData('text/plain', 'discount');
-        event.dataTransfer.effectAllowed = 'copy';
-      });
-    }
-    const purchaseNoticeDraggable = document.getElementById('purchaseNoticeDraggable');
-    if (purchaseNoticeDraggable) {
-      purchaseNoticeDraggable.addEventListener('dragstart', (event) => {
-        event.dataTransfer.setData('text/plain', 'purchaseNotice');
-        event.dataTransfer.effectAllowed = 'copy';
-      });
-    }
-    const subscriptionSwitchDraggable = document.getElementById('subscriptionSwitchDraggable');
-    if (subscriptionSwitchDraggable) {
-      subscriptionSwitchDraggable.addEventListener('dragstart', (event) => {
-        event.dataTransfer.setData('text/plain', 'subscriptionSwitch');
-        event.dataTransfer.effectAllowed = 'copy';
-      });
-    }
-    const intrusiveAdDraggable = document.getElementById('intrusiveAdDraggable');
-    if (intrusiveAdDraggable) {
-      intrusiveAdDraggable.addEventListener('dragstart', (event) => {
-        event.dataTransfer.setData('text/plain', 'intrusiveAd');
-        event.dataTransfer.effectAllowed = 'copy';
-      });
-    }
+    branchDraggables.forEach((element) => {
+      attachDragStartHandler(element, element.dataset.kind);
+    });
 
     branchPreview.addEventListener('dragover', (event) => {
       event.preventDefault();
@@ -625,51 +785,31 @@
       event.preventDefault();
       branchPreview.classList.remove('drag-over');
       const droppedType = event.dataTransfer.getData('text/plain');
-      if (droppedType === 'timer') {
-        branchState.timer = 'on';
-        selectedPlacementWidget = null;
-        renderBranchPreview();
+      updateBranchSelection(droppedType);
+    });
+
+    branchPreview.addEventListener('change', (event) => {
+      const checkbox = event.target.closest('[data-consent-key]');
+      const termsAgree = event.target.closest('[data-terms-agree]');
+      if (!checkbox && !termsAgree) {
+        return;
       }
-      if (droppedType === 'discount') {
-        branchState.price = 'discount';
-        selectedPlacementWidget = null;
+      if (termsAgree) {
+        branchState.termsAccepted = termsAgree.checked;
         renderBranchPreview();
+        return;
       }
-      if (droppedType === 'purchaseNotice') {
-        branchState.purchaseNotice = true;
-        selectedPlacementWidget = 'purchaseNotice';
-        renderBranchPreview();
-      }
-      if (droppedType === 'subscriptionSwitch') {
-        branchState.subscriptionSwitch = true;
-        selectedPlacementWidget = 'subscription';
-        renderBranchPreview();
-      }
-      if (droppedType === 'intrusiveAd') {
-        branchState.intrusiveAd = true;
-        selectedPlacementWidget = 'intrusiveAd';
+      const checkboxKey = checkbox.dataset.consentKey;
+      if (checkboxKey in branchState) {
+        branchState[checkboxKey] = checkbox.checked;
         renderBranchPreview();
       }
     });
 
     branchPreview.addEventListener('click', (event) => {
-      const purchaseModeButton = event.target.closest('[data-purchase-mode]');
-      if (purchaseModeButton) {
-        const selectedMode = purchaseModeButton.dataset.purchaseMode;
-        if (selectedMode === 'subscription') {
-          setPurchaseMode('subscription');
-        } else if (selectedMode === 'one-time') {
-          setPurchaseMode('one-time', !purchaseModeAutoRevertConsumed);
-        }
-        selectedPlacementWidget = null;
-        renderBranchPreview();
-        return;
-      }
-      const isPurchaseNotice = event.target.closest('.social-proof-popup');
-      const isIntrusiveAd = event.target.closest('.intrusive-ad-banner');
-      const widget = event.target.closest('[data-role="timer-widget"], [data-role="discount-widget"], [data-role="subscription-widget"], .social-proof-popup, .intrusive-ad-banner');
+      const widget = event.target.closest('[data-role]');
       if (!widget) {
-        const clickedInsidePreview = event.target.closest('.branch-preview-card, .branch-preview');
+        const clickedInsidePreview = event.target.closest('.branch-preview');
         const clickedInteractiveElement = event.target.closest('button, a, input, textarea, select');
         if (clickedInsidePreview && !clickedInteractiveElement) {
           selectedPlacementWidget = null;
@@ -677,57 +817,56 @@
         }
         return;
       }
-      const widgetType = widget.dataset.role === 'discount-widget'
-        ? 'discount'
-        : widget.dataset.role === 'subscription-widget'
-          ? 'subscription'
-          : widget.classList.contains('social-proof-popup')
-            ? 'purchaseNotice'
-            : widget.classList.contains('intrusive-ad-banner')
-              ? 'intrusiveAd'
-              : 'timer';
+      const widgetType = getWidgetTypeFromElement(widget);
+      if (!widgetType) {
+        return;
+      }
       if (event.target.closest('.timer-remove, .discount-remove')) {
-        if (widgetType === 'timer') {
-          branchState.timer = 'off';
-        } else if (widgetType === 'discount') {
-          branchState.price = 'original';
-        } else {
-          branchState.timer = 'off';
+        switch (widgetType) {
+          case 'discount':
+            branchState.price = 'original';
+            break;
+          case 'timer':
+          default:
+            branchState.timer = 'off';
+            break;
         }
         selectedPlacementWidget = null;
         renderBranchPreview();
         return;
       }
-      if (event.target.closest('.social-proof-remove')) {
-        branchState.purchaseNotice = false;
+      const removalActions = {
+        'sale-badge-remove': () => {
+          branchState.saleBadge = false;
+        },
+        'intrusive-ad-remove': () => {
+          branchState.intrusiveAd = false;
+        },
+        'subscription-remove': () => {
+          branchState.subscriptionSwitch = false;
+          CHECKBOX_KEYS.forEach((key) => {
+            branchState[key] = false;
+          });
+        },
+        'terms-remove': () => {
+          branchState.terms = false;
+          branchState.termsAccepted = false;
+        },
+      };
+      const removalSelector = Object.keys(removalActions).find((selector) => event.target.closest(`.${selector}`));
+      if (removalSelector) {
+        removalActions[removalSelector]();
         selectedPlacementWidget = null;
         renderBranchPreview();
         return;
       }
-      if (event.target.closest('.intrusive-ad-remove')) {
-        branchState.intrusiveAd = false;
-        selectedPlacementWidget = null;
+      if (widgetType === 'checkboxes') {
+        selectedPlacementWidget = 'checkboxes';
         renderBranchPreview();
         return;
       }
-      if (event.target.closest('.subscription-remove')) {
-        branchState.subscriptionSwitch = false;
-        branchState.subscription = 'subscription';
-        clearPurchaseModeAutoRevertTimer();
-        purchaseModeAutoRevertConsumed = false;
-        selectedPlacementWidget = null;
-        renderBranchPreview();
-        return;
-      }
-      if (widgetType === 'subscription') {
-        if (event.target.closest('.subscription-change-mark')) {
-          const nextMode = branchState.subscription === 'subscription' ? 'one-time' : 'subscription';
-          setPurchaseMode(nextMode, nextMode === 'one-time' && !purchaseModeAutoRevertConsumed);
-          selectedPlacementWidget = 'subscription';
-          renderBranchPreview();
-          return;
-        }
-        selectedPlacementWidget = 'subscription';
+      if (widgetType === 'terms') {
+        selectedPlacementWidget = 'terms';
         renderBranchPreview();
         return;
       }
@@ -761,5 +900,6 @@
       });
     });
 
+    setupResetButton();
     renderBranchPreview();
     syncBranchWidgetStates();
