@@ -3,25 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dark Pattern Simulator | サブスク編</title>
-  <link rel="stylesheet" href="./styles.css" />
-  <link rel="stylesheet" href="./scenario.css" />
+  <title>Dark Pattern Simulator | EC編</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/scenario.css" />
+  <link rel="stylesheet" href="../css/ec.css" />
 </head>
-<body class="scenario-page">
-  <div class="branch-shell">
-    <div class="scenario-header">
-      <a class="scenario-home-link" href="./index.html">トップページ</a>
-      <div class="language-toggle">
-        <button class="lang-btn active" data-lang="ja">JP</button>
-        <button class="lang-btn" data-lang="en">EN</button>
-      </div>
-    </div>
-    <div class="scenario-topline">
-      <span class="scenario-badge">サブスク編</span>
-    </div>
+<body class="scenario-page ec-page">
+    <header class="scenario-header">
+      <h1 data-text="scenarioTitle">EC編</h1>
+      <a class="scenario-home-link" href="../index.html">トップページへ</a>
+    </header>
     <section class="panel branch-panel">
-      <h2 data-text="sectionSettings">分岐設定</h2>
-      <p class="section-note" data-text="sectionSettingsNote">要素を追加して、売上を伸ばそう。</p>
       <div class="branch-layout">
         <div class="branch-left">
           <div class="branch-card">
@@ -64,20 +56,6 @@
         </div>
       </div>
     </section>
-  </div>
-
-  <div class="main">
-    <section class="panel">
-      <div class="panel-sub">
-        <h2 data-text="eventLog">イベントログ</h2>
-        <div class="log-list" id="logContainer"></div>
-      </div>
-      <div class="panel-sub">
-        <h2 data-text="appliedElements">あなたが追加した要素</h2>
-        <ul id="appliedElements"></ul>
-      </div>
-    </section>
-  </div>
 
   <div class="overlay hidden" id="abOverlay">
     <div class="modal-card" id="abCard"></div>
@@ -95,8 +73,15 @@
     </div>
   </div>
 
-  <script src="./i18n.js"></script>
-  <script src="./branch.js"></script>
-  <script src="./game.js"></script>
+  <!--
+     <div class="language-toggle">
+        <button class="lang-btn active" data-lang="ja">JP</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
+  -->
+
+  <script src="../js/i18n.js"></script>
+  <script src="../js/branch.js"></script>
+  <script src="../js/game.js"></script>
 </body>
 </html>

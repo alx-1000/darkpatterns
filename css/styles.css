@@ -695,12 +695,7 @@
       font-size: 0.84rem;
       font-weight: 700;
     }
-    .home-footer {
-      color: #94a3b8;
-      font-size: 0.88rem;
-      text-align: center;
-      padding: 4px 8px 0;
-    }
+   
     @media (max-width: 900px) {
       .home-hero-grid,
       .entry-grid {

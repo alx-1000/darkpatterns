@@ -69,7 +69,7 @@ h3 {
     gap:32px;
 }
 
-.scenario-card {
+.scenario-card-1 {
     color: inherit;
     text-decoration: none;
     display:flex;
@@ -84,6 +84,27 @@ h3 {
             rgba(84, 157, 148, 0.845) 0%,
             #54B9AC 16.83%,
             rgba(84, 130, 124, 0.69) 100%
+        ) border-box;
+    width: 50%;
+    padding: 32px;
+
+}
+
+.scenario-card-2 {
+    color: inherit;
+    text-decoration: none;
+    display:flex;
+    justify-content:space-between;
+    border: 3px solid transparent;
+    border-radius: 16px;
+
+    background:
+        linear-gradient(#111, #111) padding-box,
+        linear-gradient(
+            90deg,
+            #992038 0%,
+            #D26379 17%,
+            #661525 100%
         ) border-box;
     width: 50%;
     padding: 32px;
@@ -111,3 +132,10 @@ h3 {
     width:100%;
     display:block;
 }
+
+ .home-footer {
+      color: #94a3b8;
+      font-size: 0.88rem;
+      text-align: center;
+      padding: 20px 8px 0;
+    }
