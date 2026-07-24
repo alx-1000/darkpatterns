@@ -5,10 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dark Pattern Simulator | EC編</title>
   <link rel="stylesheet" href="../css/styles.css" />
-  <link rel="stylesheet" href="../css/scenario.css" />
   <link rel="stylesheet" href="../css/ec.css" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Kosugi+Maru&family=Zen+Maru+Gothic&display=swap" rel="stylesheet">
+
+  
 </head>
-<body class="scenario-page ec-page">
+<body class="scenario-page">
+  <div class="branch-shell">
     <header class="scenario-header">
       <h1 data-text="scenarioTitle">EC編</h1>
       <a class="scenario-home-link" href="../index.html">トップページへ</a>
@@ -42,9 +48,13 @@
             </div>
           </div>
         </div>
+
+
         <div class="branch-center">
           <div class="branch-preview" id="branchPreview"></div>
         </div>
+
+
         <div class="branch-right">
           <div class="branch-score">
             <button type="button" class="finish-button" id="finishMetricsButton" data-text="finishMetrics">完成</button>
@@ -56,6 +66,7 @@
         </div>
       </div>
     </section>
+  </div>
 
   <div class="overlay hidden" id="abOverlay">
     <div class="modal-card" id="abCard"></div>

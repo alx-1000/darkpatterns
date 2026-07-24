@@ -541,13 +541,26 @@
         : '';
 
       branchPreview.innerHTML = `
-        <div class="branch-preview-card">
+        <div class = "ec-inner-page">
           ${socialProofMarkup}
-          <div class="preview-top">
-            <span class="preview-tag">${branchState.subscription === 'subscription' ? t('subscriptionTag') : t('normalPurchaseTag')}</span>
-            <span class="preview-subtle">${branchState.ad === 'distinct' ? t('adTag') : t('recommendedTag')}</span>
+
+          <div class="ec-header">
+            <h1>${t('storeName')}</h1>
+          </div>  
+
+          <div class="product-card">
+            <div class="product-text">
+              <h3>${t('productName')}</h3>
+              <div class="product-features">
+                <div class="feature-item">${t('feature1')}</div>
+                <div class="feature-item">${t('feature2')}</div>
+                <div class="feature-item">${t('feature3')}</div>
+                <div class="feature-item">${t('feature4')}</div>
+              </div>
+            </div>
+            <img src="../assets/images/fridge.png" width="50%" height="50%" alt="${t('productName')}" />
           </div>
-          <h3 class="product-title">${t('productName')}</h3>
+
           <div class="price-row">
             <span class="price-main">${t('normalPrice')}</span>
             ${branchState.price === 'discount' ? `<span class="price-original">${t('originalPrice')}</span>` : ''}
@@ -558,7 +571,7 @@
           ${purchaseModeMarkup}
           ${subscriptionMarkup}
           <div class="promo-badges"></div>
-          <button class="preview-cta">${t('purchaseButton')}</button>
+          <button>${t('purchaseButton')}</button>
         </div>
       `;
 
