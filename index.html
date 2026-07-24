@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dark Pattern Simulator | トップページ</title>
-  <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./home.css" />
 
    <!-- Google Fonts -->
@@ -20,35 +19,45 @@
         <div class="gradient-line"></div>
     </div>
 
-    <h2>このサイトについて & ダークパターンとは</h2>
-    <p>
-      ダークパターンとは、ユーザーに不利益を与えるようなデザインのことを指します。<br>
-      このサイトでは, Webサイトにダークパターンを実装することで、ユーザーに不利益を与えるようなデザインの例を体験することができます。<br>
-      売り上げを伸ばすべきか, ユーザーの利益を守るべきか、デザインの在り方について考えるきっかけになれば幸いです。
-    </p>
-  <div class="home-shell">
+    <section>
+      <h2>このサイトについて & ダークパターンとは</h2>
+      <p>
+        ダークパターンとは、ユーザーに不利益を与えるようなデザインのことを指します。<br>
+        このサイトでは, Webサイトにダークパターンを実装することで、ユーザーに不利益を与えるようなデザインの例を体験することができます。<br>
+        売り上げを伸ばすべきか, ユーザーの利益を守るべきか、デザインの在り方について考えるきっかけになれば幸いです。
+      </p>
+    </section>
 
-    <section class="entry-grid" aria-label="Scenario list">
-      <a class="entry-card" href="./ec.html">
-        <span class="entry-tag">EC編</span>
-        <h2 class="entry-title">商品ページ</h2>
-        <div class="entry-foot">
-          <span class="entry-cta">EC編を開く →</span>
-          <span class="entry-note">画像は後で追加</span>
+    <section class="about-text">
+      <h3>Chapters</h3>
+      <div class="gradient-line-half"></div>
+    </section>
+
+    <section class="scenario-list">
+
+      <a href="ec.html" class="scenario-card"> 
+        <div class="scenario-text">
+          <h3>Chapter 1</h3>
+          <p>ネットショッピング編</p>
+        </div>
+
+        <div class="scenario-image">
+          <img src="images/section1.png" >
         </div>
       </a>
 
-      <a class="entry-card" href="./subscription.html">
-        <span class="entry-tag">サブスク編</span>
-        <h2 class="entry-title">継続課金ページ</h2>
-        <div class="entry-foot">
-          <span class="entry-cta">サブスク編を開く →</span>
-          <span class="entry-note">画像は後で追加</span>
+      <a href="subscription.html" class="scenario-card">
+        <div class="scenario-text">
+           <h3>Chapter 2</h3>
+           <p>サブスクリプション編</p>
+        </div>
+          <div class="scenario-image">
+          <img src="images/section2.png">
         </div>
       </a>
     </section>
 
     <div class="home-footer">Dark Pattern Simulator</div>
-  </div>
+
 </body>
 </html>
