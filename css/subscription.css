@@ -1,0 +1,19 @@
+.subscription-preview{aspect-ratio:2/3;min-height:0;max-width:720px;position:relative;display:block;background:#fff}
+.subscription-canvas,
+.subscription-layer{position:absolute;inset:0;width:100%;height:100%}
+.subscription-canvas{object-fit:fill}
+.subscription-layer{pointer-events:none}
+.subscription-layer img{position:absolute;display:block;max-width:100%;height:auto}
+.subscription-timer{width:90%;top:47%;left:9%}
+.subscription-campaign{width:90%;top:2%;right:2%,}
+.subscription-menu{width:82%;top:48%;left:11%;transition:top .2s ease}
+.subscription-menu.with-timer{top:60%}
+.subscription-options section{font-size:.82rem;font-weight:800;color:#334155;margin-top:4px}
+.subscription-drag-item{min-height:82px;justify-content:center;overflow:hidden;background:#f8fafc;border:1px solid #cbd5e1}
+.subscription-drag-item img{max-width:100%;max-height:100px;object-fit:contain}
+.subscription-drag-item[data-kind="campaign"] img{max-height:76px}
+.subscription-metric-list{display:grid;gap:14px}
+.subscription-metric label{display:flex;justify-content:space-between;gap:8px;color:#334155;font-size:.86rem;font-weight:800}
+.subscription-metric-track{height:9px;margin-top:7px;overflow:hidden;border-radius:999px;background:#e2e8f0}
+.subscription-metric-fill{height:100%;border-radius:inherit;transition:width .25s ease}
+.subscription-summary{margin:18px 0 0;color:#334155;line-height:1.7}
