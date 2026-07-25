@@ -230,3 +230,296 @@ h4 {
     transform: translateX(-50%);
   }
 }
+
+/* EC編の操作パネル・評価・結果表示をサブスク編のトーンへ統一 */
+.ec-page,
+.ec-page * {
+  font-family: 'Kosugi Maru', sans-serif;
+}
+
+.ec-page .item {
+  min-height: 82px;
+  justify-content: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.ec-page .branch-card section {
+  margin-top: 4px;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.ec-page .item h4 {
+  font-size: 0.95rem;
+}
+
+.ec-page .item.placed {
+  pointer-events: auto;
+  cursor: pointer;
+  opacity: 1;
+  filter: none;
+}
+
+.ec-page .item.placed img {
+  opacity: 0.38;
+  filter: grayscale(1) saturate(0.15);
+}
+
+.ec-page .branch-card .item.placed::after {
+  background: #cf284b !important;
+  color: #fff !important;
+}
+
+.ec-page .branch-score {
+  border-radius: 24px;
+  border-color: #e2e8f0;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.ec-page .finish-button {
+  background: #cf284b;
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(207, 40, 75, 0.28);
+}
+
+.ec-page .prediction-item,
+.ec-page .prediction-item.positive-high,
+.ec-page .prediction-item.positive-mid,
+.ec-page .prediction-item.positive-low,
+.ec-page .prediction-item.negative-high,
+.ec-page .prediction-item.negative-mid,
+.ec-page .prediction-item.negative-low {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+
+.ec-page .prediction-pill,
+.ec-page .prediction-pill.positive-high,
+.ec-page .prediction-pill.positive-mid,
+.ec-page .prediction-pill.positive-low,
+.ec-page .prediction-pill.negative-high,
+.ec-page .prediction-pill.negative-mid,
+.ec-page .prediction-pill.negative-low {
+  background: #fff1f2;
+  color: #b91c1c;
+}
+
+.ec-page .result-summary {
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.ec-page .result-summary-label {
+  color: #9f1239;
+}
+
+.ec-page .result-card {
+  border-radius: 20px;
+}
+
+.ec-page .result-bar.buyers,
+.ec-page .result-bar.profit {
+  background: #e2e8f0;
+  box-shadow: none;
+}
+
+.ec-page .result-bar-fill.buyers,
+.ec-page .result-bar-fill.profit {
+  background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
+}
+
+.ec-page .result-review-card,
+.ec-page .result-review-card * {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.ec-page .ec-score-metrics {
+  display: grid;
+  gap: 14px;
+}
+
+.ec-page .ec-score-metric label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.ec-page .ec-score-track {
+  height: 9px;
+  margin-top: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.ec-page .ec-score-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.25s ease;
+}
+
+.ec-page .ec-score-persons,
+.ec-page .ec-score-stars {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  max-width: 220px;
+  margin-top: 7px;
+  overflow: hidden;
+  color: #cbd5e1;
+}
+
+.ec-page .ec-score-person-base,
+.ec-page .ec-score-person-fill {
+  display: flex;
+  gap: 3px;
+}
+
+.ec-page .ec-score-person-fill,
+.ec-page .ec-score-stars-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ec-page .ec-person-icon {
+  display: block;
+  flex: 0 0 19px;
+  width: 19px;
+  height: 19px;
+  fill: currentColor;
+}
+
+.ec-page .ec-score-stars {
+  display: inline-block;
+  width: auto;
+  font-size: 1.6rem;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+.ec-page .ec-result-summary {
+  margin: 0 0 16px;
+  padding: 16px 18px;
+  border: 1px solid #fecdd3;
+  border-radius: 18px;
+  background: #fff1f2;
+  color: #334155;
+}
+
+.ec-page .ec-result-summary h4 {
+  margin: 0 0 7px;
+  color: #9f1239;
+  font-size: 1.05rem;
+}
+
+.ec-page .ec-result-summary p {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.ec-page .ec-result-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ec-page .ec-result-card,
+.ec-page .ec-result-visual {
+  display: grid;
+  justify-items: center;
+}
+
+.ec-page .ec-result-visual {
+  min-height: 200px;
+  align-content: center;
+  gap: 14px;
+}
+
+.ec-page .ec-result-person-scale {
+  display: grid;
+  gap: 5px;
+  color: #cbd5e1;
+}
+
+.ec-page .ec-result-person-row {
+  position: relative;
+  display: flex;
+  width: 136px;
+  height: 24px;
+  overflow: hidden;
+}
+
+.ec-page .ec-result-person-base,
+.ec-page .ec-result-person-fill {
+  display: flex;
+  gap: 4px;
+}
+
+.ec-page .ec-result-person-row .ec-person-icon {
+  flex-basis: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.ec-page .ec-result-person-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 900ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.ec-page .ec-result-large-scale {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  overflow: hidden;
+  color: #cbd5e1;
+}
+
+.ec-page .ec-result-large-base,
+.ec-page .ec-result-large-fill {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.ec-page .ec-result-large-fill {
+  top: auto;
+  height: 0;
+  overflow: hidden;
+  transition: height 900ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.ec-page .ec-result-large-fill .ec-result-large-icon {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.ec-page .ec-result-large-icon {
+  display: block;
+  width: 130px;
+  height: 130px;
+  fill: currentColor;
+}
+
+.ec-page .ec-result-large-fill.coin { color: #d97706; }
+.ec-page .ec-result-large-fill.flame { color: #dc2626; }
+
+@media (max-width: 760px) {
+  .ec-page .ec-result-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

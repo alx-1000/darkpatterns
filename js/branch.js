@@ -199,6 +199,29 @@
       renderBranchPreview();
     }
 
+    function removeBranchSelection(type) {
+      const removals = {
+        timer: () => { branchState.timer = 'off'; },
+        discount: () => { branchState.price = 'original'; },
+        saleBadge: () => { branchState.saleBadge = false; },
+        subscriptionSwitch: () => {
+          branchState.subscriptionSwitch = false;
+          CHECKBOX_KEYS.forEach((key) => { branchState[key] = false; });
+        },
+        terms: () => {
+          branchState.terms = false;
+          branchState.termsAccepted = false;
+        },
+        intrusiveAd: () => { branchState.intrusiveAd = false; },
+      };
+      if (!DRAGGABLE_STATE[type]?.() || !removals[type]) {
+        return;
+      }
+      removals[type]();
+      selectedPlacementWidget = null;
+      renderBranchPreview();
+    }
+
     function syncBranchWidgetStates() {
       branchDraggables.forEach((element) => {
         const isPlaced = DRAGGABLE_STATE[element.dataset.kind]?.() || false;
@@ -555,6 +578,18 @@
           node.style.setProperty('--result-pie-progress', `${targetProgress}%`);
         });
       });
+
+      root.querySelectorAll('[data-result-icon-fill]').forEach((node) => {
+        requestAnimationFrame(() => {
+          node.style.width = `${Number(node.dataset.targetWidth || '0')}%`;
+        });
+      });
+
+      root.querySelectorAll('[data-result-vertical-icon-fill]').forEach((node) => {
+        requestAnimationFrame(() => {
+          node.style.height = `${Number(node.dataset.targetHeight || '0')}%`;
+        });
+      });
     }
 
     function buildPredictionItems(metrics) {
@@ -677,6 +712,29 @@
       }
     }
 
+    function renderBranchMetricPanels() {
+      const metrics = computeBranchMetrics();
+      const [buyers, profit, rating, risk] = metrics;
+      const reviews = buildReviewEntries(metrics);
+      const buyersPercent = Math.round(getMetricRatio(buyers) * 100);
+      const profitPercent = Math.round(getMetricRatio(profit) * 100);
+      const ratingPercent = Math.round(getMetricRatio(rating) * 100);
+      const riskPercent = Math.round(getMetricRatio(risk) * 100);
+      const scoreColor = (value) => { const ratio = Math.max(0, Math.min(1, value / 100)); const start = [148, 163, 184], end = [185, 28, 28]; return `rgb(${start.map((channel, index) => Math.round(channel + ((end[index] - channel) * ratio))).join(', ')})`; };
+      const ratingColor = (value) => { const ratio = Math.max(0, Math.min(1, (5 - value) / 4)); const yellow = [245, 158, 11], red = [185, 28, 28]; return `rgb(${yellow.map((channel, index) => Math.round(channel + ((red[index] - channel) * ratio))).join(', ')})`; };
+      const person = '<svg class="ec-person-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="6" r="4"></circle><path d="M5 22c0-4 3.1-8 7-8s7 4 7 8H5z"></path></svg>';
+      const personRow = person.repeat(5);
+      const firstRow = Math.min(100, buyersPercent * 2), secondRow = Math.max(0, (buyersPercent - 50) * 2);
+      const coin = '<svg class="ec-result-large-icon" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42"></circle><circle cx="50" cy="50" r="31" fill="none" stroke="currentColor" stroke-width="5"></circle><text x="50" y="65" text-anchor="middle" fill="#fff" font-size="52" font-weight="800">C</text></svg>';
+      const flame = '<svg class="ec-result-large-icon" viewBox="0 0 100 100" aria-hidden="true"><path d="M52 5C56 28 31 33 31 57c0 18 13 33 31 33s31-13 31-31c0-21-16-33-25-45 2 18-5 28-16 35 2-15-9-25 0-44z"></path></svg>';
+      const chartMarkup = `<div class="ec-score-metrics"><div class="ec-score-metric"><label><span>${buyers.label}</span><strong>${buyers.value}${buyers.suffix}</strong></label><div class="ec-score-persons"><span class="ec-score-person-base">${person.repeat(10)}</span><span class="ec-score-person-fill" style="width:${buyersPercent}%;color:${scoreColor(buyersPercent)}">${person.repeat(10)}</span></div></div><div class="ec-score-metric"><label><span>${profit.label}</span><strong>${profit.value}${profit.suffix}</strong></label><div class="ec-score-track"><span style="width:${profitPercent}%;background:${scoreColor(profitPercent)}"></span></div></div><div class="ec-score-metric"><label><span>${rating.label}</span><strong>${rating.value.toFixed(1)}${rating.suffix}</strong></label><div class="ec-score-stars"><span class="ec-score-stars-base">★★★★★</span><span class="ec-score-stars-fill" style="width:${ratingPercent}%;color:${ratingColor(rating.value)}">★★★★★</span></div></div><div class="ec-score-metric"><label><span>${risk.label}</span><strong>${risk.value}${risk.suffix}</strong></label><div class="ec-score-track"><span style="width:${riskPercent}%;background:${scoreColor(riskPercent)}"></span></div></div></div>`;
+      const personsResult = `<div class="ec-result-person-scale"><span class="ec-result-person-row"><span class="ec-result-person-base">${personRow}</span><span class="ec-result-person-fill" data-result-icon-fill data-target-width="${firstRow}" style="width:0;color:${scoreColor(buyersPercent)}">${personRow}</span></span><span class="ec-result-person-row"><span class="ec-result-person-base">${personRow}</span><span class="ec-result-person-fill" data-result-icon-fill data-target-width="${secondRow}" style="width:0;color:${scoreColor(buyersPercent)}">${personRow}</span></span></div>`;
+      const largeResult = (icon, type, percent) => `<div class="ec-result-large-scale"><span class="ec-result-large-base">${icon}</span><span class="ec-result-large-fill ${type}" data-result-vertical-icon-fill data-target-height="${percent}" style="height:0">${icon}</span></div>`;
+      const resultMarkup = `<section class="ec-result-summary"><h4>総評</h4><p>${getResultSummary(metrics)}</p></section><div class="ec-result-grid"><section class="result-card ec-result-card"><div class="result-card-head"><h4>${buyers.label}</h4></div><div class="ec-result-visual">${personsResult}<div class="result-bar-value">${buyers.value}${buyers.suffix}</div></div></section><section class="result-card ec-result-card"><div class="result-card-head"><h4>${profit.label}</h4></div><div class="ec-result-visual">${largeResult(coin, 'coin', profitPercent)}<div class="result-bar-value">${profit.value}${profit.suffix}</div></div></section><section class="result-card ec-result-card"><div class="result-card-head"><h4>${rating.label}</h4></div><div class="result-stars-wrap"><div class="result-stars"><span class="result-stars-base">★★★★★</span><span class="result-stars-fill" data-rating-fill data-target-width="${ratingPercent}" style="width:0;color:${ratingColor(rating.value)}">★★★★★</span></div><div class="result-bar-value">${rating.value.toFixed(1)}${rating.suffix}</div></div></section><section class="result-card ec-result-card"><div class="result-card-head"><h4>${risk.label}</h4></div><div class="ec-result-visual">${largeResult(flame, 'flame', riskPercent)}<div class="result-bar-value">${risk.value}${risk.suffix}</div></div></section></div><section class="result-card result-review-card"><div class="result-card-head"><h4>${t('customerReviews')}</h4><div class="result-card-sub">${reviews.length}件</div></div><div class="result-reviews">${reviews.map((review) => `<article class="review-item"><div class="review-item-head"><div><div class="review-stars" aria-label="${review.stars}/5">${'★'.repeat(review.stars)}${'☆'.repeat(5 - review.stars)}</div><div class="review-meta">${review.author} ・ ${review.date}</div></div><div class="review-score">${review.stars}.0</div></div><div class="review-title">${review.title}</div><p class="review-body">${review.body}</p></article>`).join('')}</div></section>`;
+      branchChart.innerHTML = chartMarkup;
+      if (metricsPopupContent) { metricsPopupContent.innerHTML = resultMarkup; animateBranchMetricDisplays(metricsPopupContent); }
+    }
+
     function renderBranchPreview() {
       const checkboxItems = getCheckboxItems();
 
@@ -781,6 +839,11 @@
 
     branchDraggables.forEach((element) => {
       attachDragStartHandler(element, element.dataset.kind);
+      element.addEventListener('click', () => {
+        if (element.classList.contains('placed')) {
+          removeBranchSelection(element.dataset.kind);
+        }
+      });
     });
 
     branchPreview.addEventListener('dragover', (event) => {
