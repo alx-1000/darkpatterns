@@ -6,12 +6,45 @@
 }
 
 .ec-inner-page .ec-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
   background-color: #2E4247;
   text-align: center;
   color: white;
   font-weight: normal;
   padding: 1rem;
   margin-bottom: 1rem;
+}
+
+.ec-inner-page .ec-header h2 {
+  color: white;
+  font-size: 0.8rem;
+  margin: 0;
+  padding: 0.5rem;
+}
+
+.ec-inner-page .ec-header button {
+  background-color: #CF284B;
+  color: white;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: normal;
+  padding: 1rem 2rem;
+  cursor: pointer;
+  border-radius: 30px;
+}
+
+h3.ec-caption {
+  text-align: left;
+  font-family: 'Kosugi Maru', sans-serif;
+  font-size: 1.2rem;
+  font-weight: normal;
+  color: #2E4247;
+  margin: 0;
+  padding: 1rem 1rem 0rem 1rem;
 }
 
 .product-card {
@@ -102,7 +135,26 @@
   margin: 20px;
 }
 
+.price-appeal {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 20px;
+}
+
+.discount-appeal {
+  font-size: 1rem;
+  text-align: left;
+  background-color: #CF284B;
+  color: white;
+  font-weight: bold;
+  padding: 0rem 2rem;
+  margin: 10px;
+  transform: rotate(-5deg) translateY(20px);
+}
+
 .ec-inner-page .purchaseButton {
+
   background-color: #CF284B;
   color: white;
   border: none;
@@ -110,7 +162,7 @@
   font-size: 1.5rem;
   cursor: pointer;
   border-radius: 30px;
-  padding: 45px 15px;
+  padding: 30px 15px;
   margin: 10px;
 }
 

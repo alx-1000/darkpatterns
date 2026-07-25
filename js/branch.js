@@ -732,13 +732,21 @@
             ${renderRemovalButton('discount-remove', 'discount')}
           </div>`
         : '';
+      const discountAppealMarkup = branchState.price === 'discount'
+        ? `<div class="discount-appeal ${getSelectedPlacementClass('discount')}" data-role="discount-widget">
+            <p>1年で一番安い!</p>
+          </div>`
+        : '';
 
       branchPreview.innerHTML = `
         <div class = "ec-inner-page">
           <div class="ec-header">
+            <h2>株式会社<br>ダークネス</h2>
             <h1>${t('storeName')}</h1>
+            <button class="ec-header-button" ;">注文履歴</button>
           </div>  
           ${saleBadgeMarkup}
+          <h3 class="ec-caption">ペルソニック 超巨大冷蔵庫35L ダーティホワイト</h3>
           <div class="product-card">
             <div class="product-text">
               ${productTitleMarkup}
@@ -754,11 +762,14 @@
 
           <div class="price-section">
             ${discountInlineMarkup}
-            <p class="price-main">${t('normalPrice')}</p>
+            <div class="price-appeal">
+              <div style="display: flex"> ${discountAppealMarkup} <div></div> </div>
+             <p class="price-main">${t('normalPrice')}</p>
+            </div>
           </div>
           ${adBannerMarkup}
           <div class="promo-badges"></div>
-          <button class="purchaseButton">${t('purchaseButton')}</button>
+          <button class="purchaseButton">${t('purchaseButton')} <img src="../assets/images/cart.svg" style="width: 1em; height: 1em;" alt="カート" /></button>
           ${checkboxMarkup}
           ${termsMarkup}
         </div>
