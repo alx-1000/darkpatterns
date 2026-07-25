@@ -1,6 +1,39 @@
 <!DOCTYPE html>
-<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Dark Pattern Simulator | サブスク編</title><link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/subscription.css"></head>
-<body class="scenario-page subscription-page"><div class="branch-shell"><header class="scenario-header"><h1>サブスクリプション編</h1><a class="scenario-home-link" href="../index.html">トップページへ</a></header><section class="panel branch-panel"><div class="branch-layout">
-<div class="branch-left"><div class="branch-card subscription-options"><h2>カスタマイズ</h2><section>オプション1: タイマー</section><div class="item subscription-drag-item" data-kind="timer" draggable="true"><img src="../assets/images/timer.png" alt="タイマー"></div><section>オプション2: キャンペーン</section><div class="item subscription-drag-item" data-kind="campaign" draggable="true"><img src="../assets/images/campaign.png" alt="キャンペーン"></div><section>オプション3: 強調</section><div class="item subscription-drag-item" data-kind="emphasis" draggable="true"><img src="../assets/images/overmenu.png" alt="強調されたメニュー"></div></div></div>
-<div class="branch-center"><div class="branch-preview subscription-preview" id="branchPreview" aria-label="サブスクサービスのプレビュー"></div></div><div class="branch-right"><div class="branch-score"><div class="branch-metrics-content"><h3>スコア予測</h3><div class="branch-chart" id="branchChart"></div><button type="button" class="finish-button" id="finishMetricsButton">完成</button></div></div></div>
-</div></section></div><div class="overlay hidden" id="metricsOverlay"><div class="modal-card result-modal"><div class="metric-modal-head"><h3>Result</h3><button type="button" class="button secondary" id="closeMetricsButton">閉じる</button></div><div id="metricsPopupContent"></div></div></div><script src="../js/subscription.js"></script></body></html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dark Pattern Simulator | サブスク編</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/subscription.css">
+</head>
+<body class="scenario-page subscription-page">
+  <div class="branch-shell">
+    <header class="scenario-header">
+      <h1>サブスクリプション編</h1>
+      <a class="scenario-home-link" href="../index.html">トップページへ</a>
+    </header>
+    <section class="panel branch-panel">
+      <div class="branch-layout">
+        <div class="branch-left">
+          <div class="branch-card subscription-options">
+            <h2>カスタマイズ</h2>
+            <section>オプション1: タイマー</section>
+            <div class="item subscription-drag-item" data-kind="timer" draggable="true"><img src="../assets/images/timer.png" alt="タイマー"></div>
+            <section>オプション2: キャンペーン</section>
+            <div class="item subscription-drag-item" data-kind="campaign" draggable="true"><img src="../assets/images/campaign.png" alt="キャンペーン"></div>
+            <section>オプション3: 強調</section>
+            <div class="item subscription-drag-item" data-kind="emphasis" draggable="true"><img src="../assets/images/overmenu.png" alt="強調されたメニュー"></div>
+            <section>オプション4: 広告</section>
+            <div class="item subscription-drag-item" data-kind="ad" draggable="true"><img src="../assets/images/ad.png" alt="広告"></div>
+          </div>
+        </div>
+        <div class="branch-center"><div class="branch-preview subscription-preview" id="branchPreview" aria-label="サブスクサービスのプレビュー"></div></div>
+        <div class="branch-right"><div class="branch-score"><div class="branch-metrics-content"><h3>スコア予測</h3><div class="branch-chart" id="branchChart"></div><button type="button" class="finish-button" id="finishMetricsButton">完成</button></div></div></div>
+      </div>
+    </section>
+  </div>
+  <div class="overlay hidden" id="metricsOverlay"><div class="modal-card result-modal"><div class="metric-modal-head"><h3>Result</h3><button type="button" class="button secondary" id="closeMetricsButton">閉じる</button></div><div id="metricsPopupContent"></div></div></div>
+  <script src="../js/subscription.js"></script>
+</body>
+</html>
