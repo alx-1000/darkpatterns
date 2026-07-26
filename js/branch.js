@@ -147,9 +147,7 @@
     }
 
     function renderRemovalButton(className, widgetType, ariaLabel = '削除') {
-      return isSelectedPlacement(widgetType)
-        ? `<button class="${className}" type="button" aria-label="${ariaLabel}">×</button>`
-        : '';
+      return '';
     }
 
     function attachDragStartHandler(element, dropType) {
@@ -268,35 +266,27 @@
       }), { buyers: 0, profit: 0, userRatingPenalty: 0, flameRisk: 0 });
       const implementationCount = activeImpacts.length;
       const checkboxCount = getCheckboxCount();
-      const baseBuyers = 980 + (branchState.ad === 'distinct' ? 12 : 0);
-      const buyers = Math.min(1380, Math.round(
-        baseBuyers
-        + impactTotals.buyers
-        + (checkboxCount * 10)
-        + (implementationCount * 8)
-      ));
-      const userRating = Math.max(1.4, Math.min(4.7, Number((
+      const placedOptionCount = branchDraggables.filter((element) => DRAGGABLE_STATE[element.dataset.kind]?.()).length;
+      const buyers = Math.min(1006, Math.round(154 + ((852 / branchDraggables.length) * placedOptionCount)));
+      const userRating = Math.max(1.0, Math.min(4.6, Number((
         4.6
-        - impactTotals.userRatingPenalty
+        - (impactTotals.userRatingPenalty * 2.5)
         - (checkboxCount * 0.12)
         - Math.max(0, implementationCount - 1) * 0.08
       ).toFixed(1))));
-      const profit = 68
-        + Math.round(buyers * 0.055)
-        + Math.round(impactTotals.profit * 1.2)
-        + (checkboxCount * 3)
-        + implementationCount
-        + (branchState.ad === 'distinct' ? 2 : 0);
+      const profit = Math.min(603, Math.round(
+        124 + ((603 - 124) / branchDraggables.length) * placedOptionCount
+      ));
       const flameRisk = Math.min(100, Math.round(
-        8
+        3
         + impactTotals.flameRisk
         + (checkboxCount * 7)
         + (implementationCount * 5)
       ));
 
       return [
-        { label: t('buyersLabel'), value: buyers, max: 1400, suffix: t('buyersSuffix'), color: '#2563eb', decimals: 0, display: 'number' },
-        { label: t('profitLabel'), value: Math.min(220, profit), max: 220, suffix: t('profitSuffix'), color: '#8b5cf6', decimals: 0, display: 'number' },
+        { label: t('buyersLabel'), value: buyers, max: 1006, suffix: t('buyersSuffix'), color: '#2563eb', decimals: 0, display: 'number' },
+        { label: t('profitLabel'), value: profit, max: 603, suffix: t('profitSuffix'), color: '#8b5cf6', decimals: 0, display: 'number' },
         { label: t('userRatingLabel'), value: userRating, max: 5, suffix: t('userRatingSuffix'), color: '#f59e0b', decimals: 1, display: 'stars' },
         { label: t('flameRisk'), value: flameRisk, max: 100, suffix: t('riskSuffix'), color: '#ef4444', decimals: 0, display: 'number' },
       ];
@@ -311,24 +301,16 @@
       const profitRatio = getMetricRatio(profitMetric);
       const userRatingRatio = getMetricRatio(userRatingMetric);
       const flameRiskRatio = getMetricRatio(flameRiskMetric);
-      const profitText = profitRatio >= 0.82
-        ? '利益はとても大きい結果です'
-        : profitRatio >= 0.62
-          ? '利益は十分に伸びています'
-          : profitRatio >= 0.48
-            ? '利益はそこそこ出ています'
-            : '利益の伸びはまだ控えめです';
-      const ratingText = userRatingRatio >= 0.82
-        ? 'ユーザの評判は良好です'
-        : userRatingRatio >= 0.62
-          ? 'ユーザの評判には賛否があります'
-          : 'ユーザの評判は悪化しています';
-      const flameText = flameRiskRatio >= 0.68
-        ? '炎上リスクはかなり高い状態です。'
-        : flameRiskRatio >= 0.28
-          ? '炎上リスクは無視できない水準です。'
-          : '炎上リスクはまだ低めです。';
-      return `${profitText}。${ratingText}。${flameText}`;
+      if (flameRiskRatio >= 0.68) {
+        return '短期的な利益と購入者数は大きく伸びています。一方で、強い販売演出への不満が積み重なり、評価の低下と炎上がブランドを傷つける状態です。';
+      }
+      if (flameRiskRatio >= 0.28) {
+        return '売上は伸びていますが、分かりにくい表示を指摘する声も増え始めています。利益とユーザー体験のバランスに注意が必要です。';
+      }
+      if (profitRatio >= 0.62 && userRatingRatio >= 0.62) {
+        return '売上と購入者数は堅調に伸び、ユーザーからの評価も保たれています。分かりやすい導線を維持することが長期的な信頼につながります。';
+      }
+      return '初期に近い、分かりやすい導線を保った構成です。利益の伸びは控えめですが、ユーザーからの信頼と長期的な利用が見込めます。';
     }
 
     function getImplementationCount() {
@@ -715,11 +697,20 @@
     function renderBranchMetricPanels() {
       const metrics = computeBranchMetrics();
       const [buyers, profit, rating, risk] = metrics;
-      const reviews = buildReviewEntries(metrics);
+      const rawReviews = buildReviewEntries(metrics);
       const buyersPercent = Math.round(getMetricRatio(buyers) * 100);
       const profitPercent = Math.round(getMetricRatio(profit) * 100);
       const ratingPercent = Math.round(getMetricRatio(rating) * 100);
       const riskPercent = Math.round(getMetricRatio(risk) * 100);
+      const reviewDistribution = rating.value >= 3.5 ? null
+        : rating.value >= 2.5 ? [2, 3, 2, 3, 2]
+          : rating.value >= 1.75 ? [1, 2, 2, 3, 2]
+            : rating.value >= 1.25 ? [1, 2, 1, 2, 1]
+              : [1, 1, 1, 2, 1];
+      const reviews = rawReviews.map((review, index) => ({
+        ...review,
+        stars: reviewDistribution?.[index] ?? review.stars,
+      }));
       const scoreColor = (value) => { const ratio = Math.max(0, Math.min(1, value / 100)); const start = [148, 163, 184], end = [185, 28, 28]; return `rgb(${start.map((channel, index) => Math.round(channel + ((end[index] - channel) * ratio))).join(', ')})`; };
       const ratingColor = (value) => { const ratio = Math.max(0, Math.min(1, (5 - value) / 4)); const yellow = [245, 158, 11], red = [185, 28, 28]; return `rgb(${yellow.map((channel, index) => Math.round(channel + ((red[index] - channel) * ratio))).join(', ')})`; };
       const person = '<svg class="ec-person-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="6" r="4"></circle><path d="M5 22c0-4 3.1-8 7-8s7 4 7 8H5z"></path></svg>';

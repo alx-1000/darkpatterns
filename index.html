@@ -5,59 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dark Pattern Simulator | トップページ</title>
   <link rel="stylesheet" href="./css/home.css" />
-
-   <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Zen+Maru+Gothic&display=swap" rel="stylesheet"> 
-
 </head>
-<body>
-   <div class="hero-title">
-        <div class="gradient-line"></div>
-        <h1>株式会社ダークネス</h1>
-        <div class="gradient-line"></div>
-    </div>
+<body class="home-page">
+  <main class="home-flow" aria-live="polite">
+    <button class="home-screen home-screen-button is-active" type="button" data-screen="title" aria-label="タイトル画面。クリックして次へ">
+      <img src="./assets/images/title.png" alt="Dark Pattern Simulator" />
+    </button>
 
-    <section>
-      <h2>このサイトについて & ダークパターンとは</h2>
-      <p>
-        ダークパターンとは、ユーザーに不利益を与えるようなデザインのことを指します。<br>
-        このサイトでは, Webサイトにダークパターンを実装することで、ユーザーに不利益を与えるようなデザインの例を体験することができます。<br>
-        売り上げを伸ばすべきか, ユーザーの利益を守るべきか、デザインの在り方について考えるきっかけになれば幸いです。
-      </p>
+    <button class="home-screen home-screen-button" type="button" data-screen="about" aria-label="このサイトについて。クリックして章選択へ">
+      <img src="./assets/images/about.png" alt="このサイトについて" />
+    </button>
+
+    <section class="home-screen chapter-screen" data-screen="chapters" aria-label="章選択">
+      <div class="chapter-artboard">
+        <img src="./assets/images/chapters.png" alt="Chapters" />
+        <a class="chapter-hit chapter-hit-ec" href="./pages/ec.html" aria-label="Chapter 1 ネットショッピング編を開始"></a>
+        <a class="chapter-hit chapter-hit-subscription" href="./pages/subscription.html" aria-label="Chapter 2 サブスク編を開始"></a>
+      </div>
     </section>
-
-    <section class="about-text">
-      <h3>Chapters</h3>
-      <div class="gradient-line-half"></div>
-    </section>
-
-    <section class="scenario-list">
-
-      <a href="./pages/ec.html" class="scenario-card gradient-border-1"> 
-        <div class="scenario-text">
-          <h3>Chapter1</h3>
-          <p>ネットショッピング編</p>
-        </div>
-
-        <div class="scenario-image">
-          <img src="./assets/images/chapter1.png" >
-        </div>
-      </a>
-
-      <a href="./pages/subscription.html" class="scenario-card gradient-border-2">
-        <div class="scenario-text">
-           <h3>Chapter2</h3>
-           <p>サブスクリプション編</p>
-        </div>
-          <div class="scenario-image">
-          <img src="./assets/images/chapter2.png">
-        </div>
-      </a>
-    </section>
-
-    <div class="home-footer">Dark Pattern Simulator</div>
-
+  </main>
+  <script src="./js/home.js"></script>
 </body>
 </html>

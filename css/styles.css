@@ -785,6 +785,32 @@
       font-size: 1.2rem;
       color: #111827;
     }
+    .metric-modal-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .result-chapter-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      text-decoration: none;
+    }
+    .result-chapter-link-ec {
+      background: #49cd8f;
+    }
+    .result-chapter-link-subscription {
+      background: #cf284b;
+    }
+    .result-chapter-link:hover,
+    .result-chapter-link:focus-visible {
+      color: #ffffff;
+      filter: brightness(0.94);
+      outline: none;
+    }
     .branch-chart {
       display: grid;
       gap: 12px;
