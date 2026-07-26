@@ -212,6 +212,83 @@ h3.ec-caption {
   width: 100%;
 }
 
+/* プレビュー幅が狭くなる環境（高DPI表示など）でも、商品情報を枠内に収める。 */
+.ec-inner-page,
+.ec-inner-page * {
+  box-sizing: border-box;
+}
+
+.ec-inner-page .product-card {
+  width: calc(100% - 30px);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ec-inner-page .product-text {
+  min-width: 0;
+  flex: 1 1 56%;
+}
+
+.ec-inner-page .product-title-wrap,
+.ec-inner-page .product-title {
+  width: 100%;
+  min-width: 0;
+}
+
+.ec-inner-page .product-card h3 {
+  max-width: 100%;
+  font-size: clamp(1.35rem, 3.1vw, 40px);
+  white-space: nowrap;
+  overflow-wrap: normal;
+  letter-spacing: -0.04em;
+}
+
+.ec-inner-page .campaign-label {
+  max-width: 100%;
+  font-size: clamp(0.7rem, 2vw, 1rem);
+  overflow-wrap: anywhere;
+}
+
+.ec-inner-page .product-card > img {
+  display: block;
+  min-width: 0;
+  max-width: 40%;
+  height: auto;
+  object-fit: contain;
+}
+
+.ec-inner-page .price-section {
+  box-sizing: border-box;
+  width: calc(100% - 20px);
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ec-inner-page .discount-inline {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ec-inner-page .discount-inline img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 100px;
+  height: auto;
+}
+
+.ec-inner-page .price-appeal {
+  min-width: 0;
+  margin: 10px;
+}
+
+.ec-inner-page .price-main {
+  max-width: 100%;
+  font-size: clamp(2.8rem, 10vw, 100px);
+  overflow-wrap: anywhere;
+}
+
 h4 {
   font-family: 'Kosugi Maru', sans-serif;
   font-size: 1.5rem;
